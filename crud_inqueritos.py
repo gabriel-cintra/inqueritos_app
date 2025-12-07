@@ -17,6 +17,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 # DB_PASS = "Gco@010203"      # <<< SUA SENHA LOCAL FIXA >>>
 # DB_HOST = "localhost"
 # DB_PORT = "5432"
+DATABASE_URL = os.getenv("DATABASE_URL")
 DB_NAME = os.environ.get("DB_NAME")       
 DB_USER = os.environ.get("DB_USER")
 DB_PASS = os.environ.get("DB_PASS")
