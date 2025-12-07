@@ -59,12 +59,20 @@ def load_user(user_id):
 # -----------------------------------------------
 
 def conectar():
-    """Conecta ao banco de dados PostgreSQL local."""
+    """Conecta ao banco de dados PostgreSQL usando Variáveis de Ambiente."""
     try:
-        conn = psycopg2.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASS, host=DB_HOST, port=DB_PORT)
+        conn = psycopg2.connect(
+            # Passando os valores diretamente das Variáveis de Ambiente
+            dbname=os.environ.get("DB_NAME"),
+            user=os.environ.get("DB_USER"),
+            password=os.environ.get("DB_PASS"),
+            host=os.environ.get("DB_HOST"), 
+            port=os.environ.get("DB_PORT") 
+        )
         return conn
     except psycopg2.Error as e:
-        print(f"ERRO DE CONEXÃO: {e}")
+        # Se houver erro, ele será impresso no log do Render
+        print(f"ERRO DE CONEXÃO NO RENDER: {e}") 
         return None
 
 # ESTA FUNÇÃO ESTÁ AGORA DEFINIDA ANTES DE SER CHAMADA NO FINAL DO ARQUIVO
