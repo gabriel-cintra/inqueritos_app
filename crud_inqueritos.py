@@ -1,32 +1,29 @@
-# Arquivo: crud_inqueritos.py
-
 import psycopg2
 from flask import Flask, render_template, request, redirect, url_for, flash
 from datetime import datetime
 import csv
 from io import StringIO
-import re 
+import re
 import os
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user # Flask-Login
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
 # ===============================================
-# 1. CONFIGURAÇÃO DE CONEXÃO COM POSTGRESQL (LOCAL)
+# 1. CONFIGURAÇÃO DE CONEXÃO COM POSTGRESQL (RENDER)
 # ===============================================
-# DB_NAME = "inqueritos_db"       
-# DB_USER = "postgres"
-# DB_PASS = "Gco@010203"      # <<< SUA SENHA LOCAL FIXA >>>
-# DB_HOST = "localhost"
-# DB_PORT = "5432"
+
 DATABASE_URL = os.getenv("DATABASE_URL")
-DB_NAME = os.environ.get("DB_NAME")       
-DB_USER = os.environ.get("DB_USER")
-DB_PASS = os.environ.get("DB_PASS")
-DB_HOST = os.environ.get("DB_HOST")
-DB_PORT = os.environ.get("DB_PORT")
+
+def conectar():
+    """Conecta ao banco PostgreSQL usando DATABASE_URL."""
+    try:
+        conn = psycopg2.connect(DATABASE_URL, sslmode="require")
+        return conn
+    except psycopg2.Error as e:
+        print(f"ERRO DE CONEXÃO: {e}")
+        return None
 
 app = Flask(__name__)
-# Chave secreta para Flash e Flask-Login (fixa localmente)
-app.secret_key = 'chave_muito_secreta_para_flash' 
+app.secret_key = 'chave_muito_secreta_para_flash'
 
 # ===============================================
 # 2. CONFIGURAÇÃO DO FLASK-LOGIN
@@ -34,51 +31,27 @@ app.secret_key = 'chave_muito_secreta_para_flash'
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login' 
-
-# --- MODELO E AUTENTICAÇÃO DE USUÁRIO ---
+login_manager.login_view = 'login'
 
 class User(UserMixin):
-    """Classe para representar um usuário do sistema."""
     def __init__(self, id, username, password):
         self.id = id
         self.username = username
         self.password = password
 
-# Usuário de Teste Único (Credenciais fixas para acesso local)
 USERS = {
-    1: User(1, "gabriel.cintra", "Web010203") 
+    1: User(1, "gabriel.cintra", "Web010203")
 }
 
 @login_manager.user_loader
 def load_user(user_id):
-    """Função obrigatória para recarregar o usuário a partir do ID da sessão."""
     return USERS.get(int(user_id))
 
-# -----------------------------------------------
-# 3. FUNÇÕES DE CONEXÃO E ESTRUTURA (ORDEM CORRETA PARA INICIALIZAÇÃO)
-# -----------------------------------------------
+# ===============================================
+# 3. ESTRUTURA DO BANCO
+# ===============================================
 
-def conectar():
-    """Conecta ao banco de dados PostgreSQL usando Variáveis de Ambiente."""
-    try:
-        conn = psycopg2.connect(
-            # Passando os valores diretamente das Variáveis de Ambiente
-            dbname=os.environ.get("DB_NAME"),
-            user=os.environ.get("DB_USER"),
-            password=os.environ.get("DB_PASS"),
-            host=os.environ.get("DB_HOST"), 
-            port=os.environ.get("DB_PORT") 
-        )
-        return conn
-    except psycopg2.Error as e:
-        # Se houver erro, ele será impresso no log do Render
-        print(f"ERRO DE CONEXÃO NO RENDER: {e}") 
-        return None
-
-# ESTA FUNÇÃO ESTÁ AGORA DEFINIDA ANTES DE SER CHAMADA NO FINAL DO ARQUIVO
 def criar_tabela_se_nao_existe():
-    """Cria a tabela de inquéritos se ela ainda não existir."""
     conn = conectar()
     if conn is None: return
     try:
@@ -99,9 +72,8 @@ def criar_tabela_se_nao_existe():
         """)
         conn.commit()
     finally:
-        if conn: conn.close()
+        conn.close()
 
-# --- FUNÇÕES AUXILIARES DE PROCESSAMENTO ---
 def formatar_data(data_str):
     if not data_str:
         return None
@@ -110,9 +82,9 @@ def formatar_data(data_str):
     except ValueError:
         return None
 
-# -----------------------------------------------
+# ===============================================
 # 4. FUNÇÕES CRUD
-# -----------------------------------------------
+# ===============================================
 
 def criar_inquerito_manual(num_controle, num_eletronico, ano, num_processo, data_conclusao):
     conn = conectar()
@@ -127,40 +99,32 @@ def criar_inquerito_manual(num_controle, num_eletronico, ano, num_processo, data
         conn.commit()
         flash("Inquérito cadastrado com sucesso!", "success")
     except Exception as e:
-        flash(f"Erro ao cadastrar inquérito: {e}", "danger")
+        flash(f"Erro ao cadastrar: {e}", "danger")
         conn.rollback()
     finally:
-        if conn: conn.close()
+        conn.close()
 
 def listar_inqueritos(ordenar_por='ano', direcao='DESC'):
     conn = conectar()
     if conn is None: return []
-    
-    colunas_validas = {'ano': 'ano', 'num_controle': 'num_controle', 'data_conclusao': 'data_conclusao'}
-    direcoes_validas = {'ASC', 'DESC'}
-    
-    coluna = colunas_validas.get(ordenar_por, 'ano')
-    direcao = direcao if direcao in direcoes_validas else 'DESC'
-    
     try:
+        coluna = ordenar_por if ordenar_por in ['ano', 'num_controle', 'data_conclusao'] else 'ano'
+        direcao = direcao if direcao in ['ASC', 'DESC'] else 'DESC'
         cursor = conn.cursor()
-        sql = f"SELECT * FROM inqueritos ORDER BY {coluna} {direcao}"
-        cursor.execute(sql)
-        inqueritos = cursor.fetchall()
-        return inqueritos
+        cursor.execute(f"SELECT * FROM inqueritos ORDER BY {coluna} {direcao}")
+        return cursor.fetchall()
     finally:
-        if conn: conn.close()
+        conn.close()
 
 def buscar_inquerito(id):
     conn = conectar()
     if conn is None: return None
     try:
         cursor = conn.cursor()
-        sql = "SELECT * FROM inqueritos WHERE id = %s"
-        cursor.execute(sql, (id,))
+        cursor.execute("SELECT * FROM inqueritos WHERE id = %s", (id,))
         return cursor.fetchone()
     finally:
-        if conn: conn.close()
+        conn.close()
 
 def atualizar_inquerito(id, num_controle, num_eletronico, ano, num_processo, data_conclusao):
     conn = conectar()
@@ -168,231 +132,177 @@ def atualizar_inquerito(id, num_controle, num_eletronico, ano, num_processo, dat
     try:
         cursor = conn.cursor()
         sql = """
-            UPDATE inqueritos SET num_controle = %s, num_eletronico = %s, ano = %s, 
-            num_processo = %s, data_conclusao = %s 
-            WHERE id = %s
+            UPDATE inqueritos SET num_controle=%s, num_eletronico=%s, ano=%s,
+            num_processo=%s, data_conclusao=%s WHERE id=%s
         """
         cursor.execute(sql, (num_controle, num_eletronico, ano, num_processo, data_conclusao, id))
         conn.commit()
-        flash("Inquérito atualizado com sucesso!", "success")
+        flash("Atualizado com sucesso!", "success")
     except Exception as e:
-        flash(f"Erro ao atualizar inquérito: {e}", "danger")
+        flash(f"Erro ao atualizar: {e}", "danger")
         conn.rollback()
     finally:
-        if conn: conn.close()
+        conn.close()
 
 def deletar_inquerito(id):
     conn = conectar()
     if conn is None: return
     try:
         cursor = conn.cursor()
-        sql = "DELETE FROM inqueritos WHERE id = %s"
-        cursor.execute(sql, (id,))
+        cursor.execute("DELETE FROM inqueritos WHERE id = %s", (id,))
         conn.commit()
-        flash("Inquérito excluído com sucesso!", "success")
+        flash("Excluído com sucesso!", "success")
     except Exception as e:
-        flash(f"Erro ao excluir inquérito: {e}", "danger")
+        flash(f"Erro ao excluir: {e}", "danger")
         conn.rollback()
     finally:
-        if conn: conn.close()
+        conn.close()
 
 def inserir_em_massa(dados_csv):
     conn = conectar()
     if conn is None: return 0
-    linhas_inseridas = 0
-    linhas_com_erro = 0
+    linhas_ok = 0
+    linhas_erro = 0
 
     f = StringIO(dados_csv)
-    f.readline() 
-    reader = csv.reader(f, delimiter='\t') 
+    f.readline()
+    reader = csv.reader(f, delimiter='\t')
 
     try:
         cursor = conn.cursor()
         sql = """
-            INSERT INTO inqueritos (num_eletronico, ano, delegacia, data_ultima_atualizacao, data_conclusao, status, equipe)
+            INSERT INTO inqueritos (num_eletronico, ano, delegacia, data_ultima_atualizacao,
+            data_conclusao, status, equipe)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
+
         for row in reader:
-            if not row or len(row) < 7: continue 
-            
+            if len(row) < 7: continue
             try:
                 num_eletronico = row[0]
-                
-                match = re.search(r'\.(\d{4})\.', num_eletronico)
-                ano = int(match.group(1)) if match else 0
-                
+                ano_match = re.search(r'\.(\d{4})\.', num_eletronico)
+                ano = int(ano_match.group(1)) if ano_match else 0
                 delegacia = row[2]
                 data_atualizacao = formatar_data(row[3])
                 data_conclusao = formatar_data(row[4])
                 status = row[5]
                 equipe = row[6]
-                
                 cursor.execute(sql, (num_eletronico, ano, delegacia, data_atualizacao, data_conclusao, status, equipe))
-                linhas_inseridas += 1
-            except Exception as row_e:
-                linhas_com_erro += 1
-                print(f"Erro ao processar linha: {row}, Erro: {row_e}")
+                linhas_ok += 1
+            except Exception:
+                linhas_erro += 1
 
         conn.commit()
-        if linhas_com_erro > 0:
-             flash(f"Atenção! {linhas_inseridas} inquéritos importados, mas {linhas_com_erro} linhas tiveram erro de formatação.", "warning")
+        if linhas_erro > 0:
+            flash(f"{linhas_ok} registros importados, {linhas_erro} com erro.", "warning")
         else:
-            flash(f"Sucesso! {linhas_inseridas} inquéritos importados.", "success")
-        return linhas_inseridas
-    except Exception as e:
-        conn.rollback()
-        flash(f"Erro fatal na importação: {e}", "danger")
-        return 0
+            flash(f"Importação concluída: {linhas_ok} itens.", "success")
+
     finally:
-        if conn: conn.close()
+        conn.close()
 
 def contar_total_registros():
     conn = conectar()
     if conn is None: return 0
-    total = 0
     try:
         cursor = conn.cursor()
-        sql = "SELECT COUNT(*) FROM inqueritos"
-        cursor.execute(sql)
-        total = cursor.fetchone()[0] 
-        return total
-    except Exception as e:
-        print(f"Erro ao contar registros: {e}")
-        return 0
+        cursor.execute("SELECT COUNT(*) FROM inqueritos")
+        return cursor.fetchone()[0]
     finally:
-        if conn: conn.close()    
+        conn.close()
 
-# -----------------------------------------------
-# 5. ROTAS DE AUTENTICAÇÃO
-# -----------------------------------------------
+# ===============================================
+# 5. ROTAS
+# ===============================================
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET','POST'])
 def login():
-    """Rota para exibir o formulário de login e processar a submissão."""
     if current_user.is_authenticated:
         return redirect(url_for('index'))
-
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-
-        user = USERS.get(1) 
-        
+        user = USERS.get(1)
         if user and user.username == username and user.password == password:
-            login_user(user) 
-            flash('Login bem-sucedido!', 'success')
+            login_user(user)
             return redirect(url_for('index'))
-        else:
-            flash('Usuário ou senha inválidos.', 'danger')
-            return redirect(url_for('login'))
-            
+        flash("Credenciais inválidas.", "danger")
     return render_template('login.html')
 
 @app.route('/logout')
-@login_required 
+@login_required
 def logout():
-    """Rota para encerrar a sessão do usuário."""
     logout_user()
-    flash('Você saiu do sistema.', 'info')
+    flash("Sessão encerrada.", "info")
     return redirect(url_for('login'))
 
-
-# -----------------------------------------------
-# 6. ROTAS FLASK PROTEGIDAS (ADICIONAR @login_required)
-# -----------------------------------------------
-
 @app.route('/')
-@login_required 
+@login_required
 def index():
-    """Página principal que lista os inquéritos."""
-    ordenar_por = request.args.get('ordem', 'ano')
+    ordem = request.args.get('ordem', 'ano')
     direcao = request.args.get('dir', 'DESC')
-    
-    inqueritos = listar_inqueritos(ordenar_por, direcao)
-    total_registros = contar_total_registros() 
-    
-    return render_template('index.html', 
-                            inqueritos=inqueritos,
-                            ordem_atual=ordenar_por,
-                            dir_atual=direcao,
-                            total=total_registros)
+    dados = listar_inqueritos(ordem, direcao)
+    total = contar_total_registros()
+    return render_template('index.html',
+                           inqueritos=dados,
+                           ordem_atual=ordem,
+                           dir_atual=direcao,
+                           total=total)
 
 @app.route('/adicionar', methods=['POST'])
-@login_required 
+@login_required
 def adicionar():
-    """Processa a adição manual de um novo inquérito."""
     num_controle = request.form['num_controle']
     num_eletronico = request.form['num_eletronico']
-    
     try:
         ano = int(request.form['ano'])
-    except ValueError:
-        flash("Erro: O campo Ano deve ser um número válido.", "danger")
+    except:
+        flash("Ano inválido.", "danger")
         return redirect(url_for('index'))
-        
     num_processo = request.form['num_processo']
-    data_conclusao_str = request.form['data_conclusao']
-    
-    data_conclusao = formatar_data(data_conclusao_str)
-    
-    criar_inquerito_manual(num_controle, num_eletronico, ano, num_processo, data_conclusao)
+    data = formatar_data(request.form['data_conclusao'])
+    criar_inquerito_manual(num_controle, num_eletronico, ano, num_processo, data)
     return redirect(url_for('index'))
 
-@app.route('/editar/<int:id>', methods=['GET', 'POST'])
-@login_required 
+@app.route('/editar/<int:id>', methods=['GET','POST'])
+@login_required
 def editar(id):
-    """Exibe o formulário de edição e processa a atualização."""
-    inquerito = buscar_inquerito(id)
-    if not inquerito:
-        flash("Inquérito não encontrado!", "danger")
+    item = buscar_inquerito(id)
+    if not item:
+        flash("Não encontrado.", "danger")
         return redirect(url_for('index'))
-
     if request.method == 'POST':
         num_controle = request.form['num_controle']
         num_eletronico = request.form['num_eletronico']
-        
-        try:
-            ano = int(request.form['ano'])
-        except ValueError:
-            flash("Erro: O campo Ano deve ser um número válido.", "danger")
-            return redirect(url_for('index'))
-            
+        ano = int(request.form['ano'])
         num_processo = request.form['num_processo']
-        data_conclusao = formatar_data(request.form['data_conclusao'])
-        
-        atualizar_inquerito(id, num_controle, num_eletronico, ano, num_processo, data_conclusao)
+        data = formatar_data(request.form['data_conclusao'])
+        atualizar_inquerito(id, num_controle, num_eletronico, ano, num_processo, data)
         return redirect(url_for('index'))
-    
-    data_conclusao_iso = inquerito[5].isoformat() if inquerito[5] else ''
-    
-    return render_template('editar.html', 
-                            inquerito=inquerito, 
-                            data_conclusao_iso=data_conclusao_iso)
+    data_iso = item[5].isoformat() if item[5] else ""
+    return render_template('editar.html', inquerito=item, data_conclusao_iso=data_iso)
 
 @app.route('/deletar/<int:id>')
-@login_required 
+@login_required
 def deletar(id):
-    """Processa a exclusão de um inquérito."""
     deletar_inquerito(id)
     return redirect(url_for('index'))
 
-@app.route('/importar_massa', methods=['GET', 'POST'])
-@login_required 
+@app.route('/importar_massa', methods=['GET','POST'])
+@login_required
 def importar_massa():
-    """Exibe o formulário de importação e processa o CSV/TXT."""
     if request.method == 'POST':
-        dados_brutos = request.form.get('dados_inqueritos', '')
-        if dados_brutos:
-            inserir_em_massa(dados_brutos)
+        dados = request.form.get('dados_inqueritos', '')
+        if dados:
+            inserir_em_massa(dados)
         else:
-            flash("Nenhum dado fornecido para importação.", "warning")
-        
+            flash("Nenhum dado fornecido.", "warning")
         return redirect(url_for('index'))
-        
     return render_template('importar.html')
 
-# --- INICIALIZAÇÃO DO SERVIDOR ---
+# ===============================================
+# 6. EXECUÇÃO SOMENTE LOCAL
+# ===============================================
+
 if __name__ == '__main__':
-    # Esta chamada agora está no local correto, garantindo que a função exista.
-    criar_tabela_se_nao_existe() 
-    app.run(debug=True)
+    criar_tabela_se_nao_existe()
