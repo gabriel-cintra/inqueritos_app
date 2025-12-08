@@ -10,14 +10,36 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 # 1. CONEXÃO LOCAL COM MYSQL
 # ===============================================
 
+#def conectar():
+#    """Conecta ao MySQL local."""
+#    try:
+#        conn = pymysql.connect(
+#            host='localhost',
+#            user='root',
+#            password='Gco@010203',
+#            database='inqueritos_db',
+#            charset='utf8mb4',
+#            cursorclass=pymysql.cursors.Cursor  # cursor padrão → tuplas
+#        )
+#        return conn
+#    except pymysql.Error as e:
+#        print(f"ERRO DE CONEXÃO COM MYSQL: {e}")
+#        return None
+
+
+
+# ===============================================
+# 1. CONEXÃO REMOTA COM MYSQL
+# ===============================================
+
 def conectar():
     """Conecta ao MySQL local."""
     try:
         conn = pymysql.connect(
-            host='localhost',
-            user='root',
+            host='gabrielcintra.mysql.pythonanywhere-services.com',
+            user='gabrielcintra',
             password='Gco@010203',
-            database='inqueritos_db',
+            database='gabrielcintra$default',
             charset='utf8mb4',
             cursorclass=pymysql.cursors.Cursor  # cursor padrão → tuplas
         )
