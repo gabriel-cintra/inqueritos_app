@@ -6,26 +6,6 @@ from io import StringIO
 import re
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
-# ===============================================
-# 1. CONEXÃO LOCAL COM MYSQL
-# ===============================================
-
-#def conectar():
-#    """Conecta ao MySQL local."""
-#    try:
-#        conn = pymysql.connect(
-#            host='localhost',
-#            user='root',
-#            password='Gco@010203',
-#            database='inqueritos_db',
-#            charset='utf8mb4',
-#            cursorclass=pymysql.cursors.Cursor  # cursor padrão → tuplas
-#        )
-#        return conn
-#    except pymysql.Error as e:
-#        print(f"ERRO DE CONEXÃO COM MYSQL: {e}")
-#        return None
-
 
 
 # ===============================================
@@ -33,7 +13,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 # ===============================================
 
 def conectar():
-    """Conecta ao MySQL local."""
+    """Conecta ao MySQL remoto."""
     try:
         conn = pymysql.connect(
             host='gabrielcintra.mysql.pythonanywhere-services.com',
@@ -41,7 +21,7 @@ def conectar():
             password='Gco@010203',
             database='gabrielcintra$default',
             charset='utf8mb4',
-            cursorclass=pymysql.cursors.Cursor  # cursor padrão → tuplas
+            cursorclass=pymysql.cursors.Cursor
         )
         return conn
     except pymysql.Error as e:
@@ -60,15 +40,18 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
+
 class User(UserMixin):
     def __init__(self, id, username, password):
         self.id = id
         self.username = username
         self.password = password
 
+
 USERS = {
     1: User(1, "gabriel.cintra", "Web010203")
 }
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -81,7 +64,7 @@ def load_user(user_id):
 
 def criar_tabela_se_nao_existe():
     conn = conectar()
-    if conn is None: 
+    if conn is None:
         return
     try:
         cursor = conn.cursor()
@@ -99,6 +82,16 @@ def criar_tabela_se_nao_existe():
                 equipe TEXT
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         """)
+
+        # Garante unicidade do número eletrônico
+        try:
+            cursor.execute("""
+                ALTER TABLE inqueritos
+                ADD UNIQUE (num_eletronico)
+            """)
+        except:
+            pass  # Já existe
+
         conn.commit()
     except Exception as e:
         print(f"ERRO AO CRIAR TABELA: {e}")
@@ -119,9 +112,33 @@ def formatar_data(data_str):
 # 4. FUNÇÕES CRUD
 # ===============================================
 
-def criar_inquerito_manual(num_controle, num_eletronico, ano, num_processo, data_conclusao):
+def verificar_numero_eletronico(num_eletronico):
+    """Verifica se o número eletrônico já existe no banco."""
     conn = conectar()
-    if conn is None: return
+    if conn is None:
+        return True
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT id FROM inqueritos WHERE num_eletronico = %s",
+            (num_eletronico,)
+        )
+        resultado = cursor.fetchone()
+        return resultado is not None
+    finally:
+        conn.close()
+
+
+def criar_inquerito_manual(num_controle, num_eletronico, ano, num_processo, data_conclusao):
+
+    # Verificação de duplicidade
+    if verificar_numero_eletronico(num_eletronico):
+        flash("O Nº Eletrônico informado já está cadastrado.", "danger")
+        return
+
+    conn = conectar()
+    if conn is None:
+        return
     try:
         cursor = conn.cursor()
         sql = """
@@ -141,7 +158,8 @@ def criar_inquerito_manual(num_controle, num_eletronico, ano, num_processo, data
 
 def listar_inqueritos(ordenar_por='ano', direcao='DESC'):
     conn = conectar()
-    if conn is None: return []
+    if conn is None:
+        return []
     try:
         coluna = ordenar_por if ordenar_por in ['ano', 'num_controle', 'data_conclusao'] else 'ano'
         direcao = direcao if direcao in ['ASC', 'DESC'] else 'DESC'
@@ -155,7 +173,8 @@ def listar_inqueritos(ordenar_por='ano', direcao='DESC'):
 
 def buscar_inquerito(id):
     conn = conectar()
-    if conn is None: return None
+    if conn is None:
+        return None
     try:
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM inqueritos WHERE id = %s", (id,))
@@ -166,7 +185,8 @@ def buscar_inquerito(id):
 
 def atualizar_inquerito(id, num_controle, num_eletronico, ano, num_processo, data_conclusao):
     conn = conectar()
-    if conn is None: return
+    if conn is None:
+        return
     try:
         cursor = conn.cursor()
         sql = """
@@ -187,7 +207,8 @@ def atualizar_inquerito(id, num_controle, num_eletronico, ano, num_processo, dat
 
 def deletar_inquerito(id):
     conn = conectar()
-    if conn is None: return
+    if conn is None:
+        return
     try:
         cursor = conn.cursor()
         cursor.execute("DELETE FROM inqueritos WHERE id = %s", (id,))
@@ -202,7 +223,9 @@ def deletar_inquerito(id):
 
 def inserir_em_massa(dados_csv):
     conn = conectar()
-    if conn is None: return 0
+    if conn is None:
+        return 0
+
     linhas_ok = 0
     linhas_erro = 0
 
@@ -222,8 +245,15 @@ def inserir_em_massa(dados_csv):
         for row in reader:
             if len(row) < 7:
                 continue
+
             try:
                 num_eletronico = row[0]
+
+                # Ignora duplicados silenciosamente
+                if verificar_numero_eletronico(num_eletronico):
+                    linhas_erro += 1
+                    continue
+
                 ano_match = re.search(r'\.(\d{4})\.', num_eletronico)
                 ano = int(ano_match.group(1)) if ano_match else 0
 
@@ -233,9 +263,11 @@ def inserir_em_massa(dados_csv):
                 status = row[5]
                 equipe = row[6]
 
-                cursor.execute(sql, (num_eletronico, ano, delegacia, data_atualizacao,
-                                     data_conclusao, status, equipe))
+                cursor.execute(sql, (num_eletronico, ano, delegacia,
+                                     data_atualizacao, data_conclusao,
+                                     status, equipe))
                 linhas_ok += 1
+
             except Exception as e:
                 print("Erro na linha CSV:", e)
                 linhas_erro += 1
@@ -243,7 +275,7 @@ def inserir_em_massa(dados_csv):
         conn.commit()
 
         if linhas_erro > 0:
-            flash(f"{linhas_ok} registros importados; {linhas_erro} com erro.", "warning")
+            flash(f"{linhas_ok} registros importados; {linhas_erro} duplicados/erro.", "warning")
         else:
             flash(f"Importação concluída: {linhas_ok} itens.", "success")
 
@@ -256,7 +288,8 @@ def inserir_em_massa(dados_csv):
 
 def contar_total_registros():
     conn = conectar()
-    if conn is None: return 0
+    if conn is None:
+        return 0
     try:
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM inqueritos")
@@ -313,11 +346,17 @@ def index():
 @app.route('/adicionar', methods=['POST'])
 @login_required
 def adicionar():
+
     num_controle = request.form['num_controle']
     num_eletronico = request.form['num_eletronico']
     ano = int(request.form['ano'])
     num_processo = request.form['num_processo']
     data = formatar_data(request.form['data_conclusao'])
+
+    # Validação de duplicidade
+    if verificar_numero_eletronico(num_eletronico):
+        flash("O Nº Eletrônico informado já está cadastrado.", "danger")
+        return redirect(url_for('index'))
 
     criar_inquerito_manual(num_controle, num_eletronico, ano, num_processo, data)
     return redirect(url_for('index'))
@@ -337,6 +376,11 @@ def editar(id):
         ano = int(request.form['ano'])
         num_processo = request.form['num_processo']
         data = formatar_data(request.form['data_conclusao'])
+
+        # Validação de duplicidade somente quando o número for alterado
+        if num_eletronico != item[2] and verificar_numero_eletronico(num_eletronico):
+            flash("Este Nº Eletrônico já está registrado em outro inquérito.", "danger")
+            return redirect(url_for('editar', id=id))
 
         atualizar_inquerito(id, num_controle, num_eletronico, ano, num_processo, data)
         return redirect(url_for('index'))
