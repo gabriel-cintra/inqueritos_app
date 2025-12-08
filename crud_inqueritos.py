@@ -1,33 +1,38 @@
-import psycopg2
+import pymysql
 from flask import Flask, render_template, request, redirect, url_for, flash
 from datetime import datetime
 import csv
 from io import StringIO
 import re
-import os
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
 # ===============================================
-# 1. CONFIGURAÇÃO DE CONEXÃO COM POSTGRESQL (RENDER)
+# 1. CONEXÃO LOCAL COM MYSQL
 # ===============================================
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-
 def conectar():
-    """Conecta ao banco PostgreSQL usando DATABASE_URL."""
+    """Conecta ao MySQL local."""
     try:
-        conn = psycopg2.connect(DATABASE_URL, sslmode="require")
+        conn = pymysql.connect(
+            host='localhost',
+            user='root',
+            password='Gco@010203',
+            database='inqueritos_db',
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.Cursor  # cursor padrão → tuplas
+        )
         return conn
-    except psycopg2.Error as e:
-        print(f"ERRO DE CONEXÃO: {e}")
+    except pymysql.Error as e:
+        print(f"ERRO DE CONEXÃO COM MYSQL: {e}")
         return None
+
+
+# ===============================================
+# 2. CONFIGURAÇÃO DO FLASK + LOGIN
+# ===============================================
 
 app = Flask(__name__)
 app.secret_key = 'chave_muito_secreta_para_flash'
-
-# ===============================================
-# 2. CONFIGURAÇÃO DO FLASK-LOGIN
-# ===============================================
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -47,18 +52,20 @@ USERS = {
 def load_user(user_id):
     return USERS.get(int(user_id))
 
+
 # ===============================================
-# 3. ESTRUTURA DO BANCO
+# 3. CRIAÇÃO DA TABELA
 # ===============================================
 
 def criar_tabela_se_nao_existe():
     conn = conectar()
-    if conn is None: return
+    if conn is None: 
+        return
     try:
         cursor = conn.cursor()
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS inqueritos (
-                id SERIAL PRIMARY KEY,
+                id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
                 num_controle TEXT,
                 num_eletronico TEXT NOT NULL,
                 ano INTEGER NOT NULL,
@@ -68,11 +75,14 @@ def criar_tabela_se_nao_existe():
                 data_ultima_atualizacao DATE,
                 status TEXT,
                 equipe TEXT
-            )
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
         """)
         conn.commit()
+    except Exception as e:
+        print(f"ERRO AO CRIAR TABELA: {e}")
     finally:
         conn.close()
+
 
 def formatar_data(data_str):
     if not data_str:
@@ -81,6 +91,7 @@ def formatar_data(data_str):
         return datetime.strptime(data_str, '%d/%m/%Y').date()
     except ValueError:
         return None
+
 
 # ===============================================
 # 4. FUNÇÕES CRUD
@@ -92,7 +103,8 @@ def criar_inquerito_manual(num_controle, num_eletronico, ano, num_processo, data
     try:
         cursor = conn.cursor()
         sql = """
-            INSERT INTO inqueritos (num_controle, num_eletronico, ano, num_processo, data_conclusao)
+            INSERT INTO inqueritos
+            (num_controle, num_eletronico, ano, num_processo, data_conclusao)
             VALUES (%s, %s, %s, %s, %s)
         """
         cursor.execute(sql, (num_controle, num_eletronico, ano, num_processo, data_conclusao))
@@ -104,17 +116,20 @@ def criar_inquerito_manual(num_controle, num_eletronico, ano, num_processo, data
     finally:
         conn.close()
 
+
 def listar_inqueritos(ordenar_por='ano', direcao='DESC'):
     conn = conectar()
     if conn is None: return []
     try:
         coluna = ordenar_por if ordenar_por in ['ano', 'num_controle', 'data_conclusao'] else 'ano'
         direcao = direcao if direcao in ['ASC', 'DESC'] else 'DESC'
+
         cursor = conn.cursor()
         cursor.execute(f"SELECT * FROM inqueritos ORDER BY {coluna} {direcao}")
         return cursor.fetchall()
     finally:
         conn.close()
+
 
 def buscar_inquerito(id):
     conn = conectar()
@@ -126,14 +141,17 @@ def buscar_inquerito(id):
     finally:
         conn.close()
 
+
 def atualizar_inquerito(id, num_controle, num_eletronico, ano, num_processo, data_conclusao):
     conn = conectar()
     if conn is None: return
     try:
         cursor = conn.cursor()
         sql = """
-            UPDATE inqueritos SET num_controle=%s, num_eletronico=%s, ano=%s,
-            num_processo=%s, data_conclusao=%s WHERE id=%s
+            UPDATE inqueritos
+            SET num_controle=%s, num_eletronico=%s, ano=%s,
+                num_processo=%s, data_conclusao=%s
+            WHERE id=%s
         """
         cursor.execute(sql, (num_controle, num_eletronico, ano, num_processo, data_conclusao, id))
         conn.commit()
@@ -143,6 +161,7 @@ def atualizar_inquerito(id, num_controle, num_eletronico, ano, num_processo, dat
         conn.rollback()
     finally:
         conn.close()
+
 
 def deletar_inquerito(id):
     conn = conectar()
@@ -158,6 +177,7 @@ def deletar_inquerito(id):
     finally:
         conn.close()
 
+
 def inserir_em_massa(dados_csv):
     conn = conectar()
     if conn is None: return 0
@@ -171,35 +191,46 @@ def inserir_em_massa(dados_csv):
     try:
         cursor = conn.cursor()
         sql = """
-            INSERT INTO inqueritos (num_eletronico, ano, delegacia, data_ultima_atualizacao,
-            data_conclusao, status, equipe)
+            INSERT INTO inqueritos
+            (num_eletronico, ano, delegacia, data_ultima_atualizacao,
+             data_conclusao, status, equipe)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
 
         for row in reader:
-            if len(row) < 7: continue
+            if len(row) < 7:
+                continue
             try:
                 num_eletronico = row[0]
                 ano_match = re.search(r'\.(\d{4})\.', num_eletronico)
                 ano = int(ano_match.group(1)) if ano_match else 0
+
                 delegacia = row[2]
                 data_atualizacao = formatar_data(row[3])
                 data_conclusao = formatar_data(row[4])
                 status = row[5]
                 equipe = row[6]
-                cursor.execute(sql, (num_eletronico, ano, delegacia, data_atualizacao, data_conclusao, status, equipe))
+
+                cursor.execute(sql, (num_eletronico, ano, delegacia, data_atualizacao,
+                                     data_conclusao, status, equipe))
                 linhas_ok += 1
-            except Exception:
+            except Exception as e:
+                print("Erro na linha CSV:", e)
                 linhas_erro += 1
 
         conn.commit()
+
         if linhas_erro > 0:
-            flash(f"{linhas_ok} registros importados, {linhas_erro} com erro.", "warning")
+            flash(f"{linhas_ok} registros importados; {linhas_erro} com erro.", "warning")
         else:
             flash(f"Importação concluída: {linhas_ok} itens.", "success")
 
+    except Exception as e:
+        flash(f"Erro na importação: {e}", "danger")
+        conn.rollback()
     finally:
         conn.close()
+
 
 def contar_total_registros():
     conn = conectar()
@@ -211,23 +242,29 @@ def contar_total_registros():
     finally:
         conn.close()
 
+
 # ===============================================
 # 5. ROTAS
 # ===============================================
 
-@app.route('/login', methods=['GET','POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('index'))
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         user = USERS.get(1)
+
         if user and user.username == username and user.password == password:
             login_user(user)
             return redirect(url_for('index'))
+
         flash("Credenciais inválidas.", "danger")
+
     return render_template('login.html')
+
 
 @app.route('/logout')
 @login_required
@@ -235,6 +272,7 @@ def logout():
     logout_user()
     flash("Sessão encerrada.", "info")
     return redirect(url_for('login'))
+
 
 @app.route('/')
 @login_required
@@ -249,38 +287,42 @@ def index():
                            dir_atual=direcao,
                            total=total)
 
+
 @app.route('/adicionar', methods=['POST'])
 @login_required
 def adicionar():
     num_controle = request.form['num_controle']
     num_eletronico = request.form['num_eletronico']
-    try:
-        ano = int(request.form['ano'])
-    except:
-        flash("Ano inválido.", "danger")
-        return redirect(url_for('index'))
+    ano = int(request.form['ano'])
     num_processo = request.form['num_processo']
     data = formatar_data(request.form['data_conclusao'])
+
     criar_inquerito_manual(num_controle, num_eletronico, ano, num_processo, data)
     return redirect(url_for('index'))
 
-@app.route('/editar/<int:id>', methods=['GET','POST'])
+
+@app.route('/editar/<int:id>', methods=['GET', 'POST'])
 @login_required
 def editar(id):
     item = buscar_inquerito(id)
     if not item:
         flash("Não encontrado.", "danger")
         return redirect(url_for('index'))
+
     if request.method == 'POST':
         num_controle = request.form['num_controle']
         num_eletronico = request.form['num_eletronico']
         ano = int(request.form['ano'])
         num_processo = request.form['num_processo']
         data = formatar_data(request.form['data_conclusao'])
+
         atualizar_inquerito(id, num_controle, num_eletronico, ano, num_processo, data)
         return redirect(url_for('index'))
+
     data_iso = item[5].isoformat() if item[5] else ""
+
     return render_template('editar.html', inquerito=item, data_conclusao_iso=data_iso)
+
 
 @app.route('/deletar/<int:id>')
 @login_required
@@ -288,21 +330,26 @@ def deletar(id):
     deletar_inquerito(id)
     return redirect(url_for('index'))
 
-@app.route('/importar_massa', methods=['GET','POST'])
+
+@app.route('/importar_massa', methods=['GET', 'POST'])
 @login_required
 def importar_massa():
     if request.method == 'POST':
         dados = request.form.get('dados_inqueritos', '')
-        if dados:
+        if dados.strip():
             inserir_em_massa(dados)
         else:
             flash("Nenhum dado fornecido.", "warning")
+
         return redirect(url_for('index'))
+
     return render_template('importar.html')
 
+
 # ===============================================
-# 6. EXECUÇÃO SOMENTE LOCAL
+# 6. EXECUÇÃO LOCAL
 # ===============================================
 
 if __name__ == '__main__':
     criar_tabela_se_nao_existe()
+    app.run(debug=True)

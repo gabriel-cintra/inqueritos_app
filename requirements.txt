@@ -1,5 +1,5 @@
 Flask
 gunicorn
-psycopg2-binary
+PyMySQL
 flask-login
 python-dotenv
