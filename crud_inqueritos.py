@@ -10,25 +10,23 @@ import csv
 
 
 # ===============================================
-# 1. CONEXÃO LOCAL COM MYSQL
+# 1. CONEXÃO COM MYSQL REMOTO
 # ===============================================
 
 def conectar():
-    """Conecta ao MySQL local."""
     try:
         conn = pymysql.connect(
-            host='localhost',
-            user='root',
+            host='gabrielcintra.mysql.pythonanywhere-services.com',
+            user='gabrielcintra',
             password='Gco@010203',
-            database='inqueritos_db',
+            database='gabrielcintra$default',
             charset='utf8mb4',
-            cursorclass=pymysql.cursors.Cursor  # cursor padrão → tuplas
+            cursorclass=pymysql.cursors.Cursor
         )
         return conn
     except pymysql.Error as e:
-        print(f"ERRO DE CONEXÃO COM MYSQL: {e}")
+        print(f"ERRO: {e}")
         return None
-
 
 # ===============================================
 # 2. FLASK + LOGIN
