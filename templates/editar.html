@@ -7,7 +7,8 @@
         body { font-family: sans-serif; margin: 20px; background-color: #f4f4f9; }
         .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         form { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px; border: 1px solid #ccc; border-radius: 4px; }
-        input[type="text"], input[type="number"] { width: 100%; padding: 10px; box-sizing: border-box; }
+        /* Adicionado input[type="date"] ao estilo */
+        input[type="text"], input[type="number"], input[type="date"] { width: 100%; padding: 10px; box-sizing: border-box; } 
         button { padding: 10px 15px; margin-top: 10px; }
         .form-full { grid-column: 1 / -1; }
     </style>
@@ -32,10 +33,10 @@
         <label for="num_processo">Nº Processo:</label>
         <input type="text" id="num_processo" name="num_processo" value="{{ inquerito[4] or '' }}">
 
-        <label for="data_conclusao" class="form-full">Data Conclusão (DD/MM/AAAA):</label>
-        <input type="text" id="data_conclusao" name="data_conclusao" class="form-full" value="{{ inquerito[5].strftime('%d/%m/%Y') if inquerito[5] else '' }}">
+        <label for="data_conclusao" class="form-full">Data Conclusão:</label>
+        <input type="date" id="data_conclusao" name="data_conclusao" class="form-full" value="{{ data_conclusao_iso }}">
         
-        <button type="submit" class="form-full">Salvar Alterações</button>
+        <button type="submit" class="form-full btn btn-primary">Salvar Alterações</button>
     </form>
     
     <p style="margin-top: 20px;"><a href="{{ url_for('index') }}">← Voltar para a Lista</a></p>
