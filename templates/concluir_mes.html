@@ -1,22 +1,16 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8">
-    <title>Inquéritos a concluir - {{ mes }}/{{ ano }}</title>
-
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- Bootstrap 5 -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-      rel="stylesheet">
+    <title>Inquéritos a Concluir - {{ mes }}/{{ ano }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-
 <body class="bg-light">
 
 <div class="container py-4">
 
-    <h2 class="mb-4">Inquéritos a concluir – {{ mes }}/{{ ano }}</h2>
+    <h2 class="mb-4">Inquéritos a Concluir – {{ mes }}/{{ ano }}</h2>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -32,7 +26,7 @@
     {% if inqueritos and inqueritos|length > 0 %}
 
     <div class="table-responsive">
-      <table class="table table-bordered table-striped align-middle">
+      <table class="table table-striped table-bordered align-middle shadow-sm">
         <thead class="table-dark">
           <tr>
             <th>ID</th>
@@ -41,7 +35,7 @@
             <th>Ano</th>
             <th>Nº Processo</th>
             <th>Data Conclusão</th>
-            <th style="width:120px">Ações</th>
+            <th style="width:150px">Ações</th>
           </tr>
         </thead>
         <tbody>
@@ -55,15 +49,10 @@
             <td>{{ row[5].strftime('%d/%m/%Y') if row[5] else '' }}</td>
 
             <td>
-             <form action="{{ url_for('relatar', id=row[0]) }}" method="post"
-      onsubmit="return confirm('Confirmar relato e remoção do inquérito?')">
-    <button type="submit" class="btn btn-success btn-sm w-100">
-        Relatado
-    </button>
-</form>
-
+              <form action="{{ url_for('relatar', id=row[0]) }}" method="post" onsubmit="return confirm('Confirmar relato e remoção do inquérito?')">
+                <button type="submit" class="btn btn-success btn-sm w-100">Relatado</button>
+              </form>
             </td>
-
           </tr>
           {% endfor %}
         </tbody>
@@ -71,15 +60,13 @@
     </div>
 
     {% else %}
-      <div class="alert alert-info">Não há inquéritos marcados para conclusão neste mês.</div>
+      <div class="alert alert-info shadow-sm">Não há inquéritos marcados para conclusão neste mês.</div>
     {% endif %}
 
     <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Voltar</a>
 
 </div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

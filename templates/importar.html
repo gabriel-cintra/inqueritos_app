@@ -1,35 +1,47 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <title>Importação em Massa</title>
-    <style>
-        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f9; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        textarea { width: 100%; min-height: 300px; padding: 10px; box-sizing: border-box; font-family: monospace; }
-    </style>
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-<div class="container mt-4">
-    <h1>📥 Importação de Inquéritos em Massa</h1>
-    
-    <p>Cole os dados brutos de sua planilha na caixa abaixo. **Use TAB ou outro separador** (a configuração atual espera TAB) entre os campos. A primeira linha será ignorada (cabeçalho).</p>
-    
-    <p>A ordem esperada das colunas é:
-    <br><code>Nº Inquérito | Ano | Delegacia | Data Última Atualização | Data Conclusão | Status | Equipe</code></p>
-    
-    <form method="POST" action="{{ url_for('importar_massa') }}">
-        <textarea name="dados_inqueritos" rows="20" placeholder="Exemplo:&#10;Nº Inquérito	Ano	Delegacia	Data Última Atualização	Data Conclusão	Status	Equipe&#10;2392712-90.2025.010004	2025	DEL.POL.METROPOLITANO	13/11/2025	13/12/2025	Em Cartório	EPJ 2 - CINTRA"></textarea><br>
-        <button type="submit" style="margin-top: 10px; padding: 10px 20px;">Processar Importação</button>
-    </form>
-    
-    <p><a href="{{ url_for('index') }}">← Voltar para a Lista Principal</a></p>
+<body class="bg-light">
+
+<div class="container mt-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="m-0">Importação de Inquéritos em Massa</h4>
+        </div>
+
+        <div class="card-body">
+            <p>
+                Cole os dados brutos da planilha no campo abaixo. Utilize <strong>TAB</strong> ou outro separador
+                equivalente. A primeira linha será ignorada como cabeçalho.
+            </p>
+
+            <p class="mb-3">
+                <strong>Ordem esperada das colunas:</strong><br>
+                <code>Nº Inquérito | Ano | Delegacia | Data Última Atualização | Data Conclusão | Status | Equipe</code>
+            </p>
+
+            <form method="POST" action="{{ url_for('importar_massa') }}">
+                <div class="mb-3">
+                    <label class="form-label">Dados para Importação</label>
+                    <textarea name="dados_inqueritos" rows="15" class="form-control" placeholder="Exemplo:
+Nº Inquérito	Ano	Delegacia	Data Última Atualização	Data Conclusão	Status	Equipe
+2392712-90.2025.010004	2025	DEL.POL.METROPOLITANO	13/11/2025	13/12/2025	Em Cartório	EPJ 2 - CINTRA"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Processar Importação</button>
+            </form>
+
+            <div class="mt-3">
+                <a href="{{ url_for('index') }}" class="text-decoration-none">← Voltar para a Lista Principal</a>
+            </div>
+        </div>
+    </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdhrxM69Kz8tK5tJ9c" crossorigin="anonymous"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

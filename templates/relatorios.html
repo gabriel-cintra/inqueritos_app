@@ -5,80 +5,76 @@
     <title>Relatórios de Inquéritos Concluídos</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .filter-row { display: flex; gap: 15px; align-items: flex-end; margin-bottom: 20px; }
-    </style>
 </head>
 
 <body class="bg-light">
-
 <div class="container py-4">
 
     <h2 class="mb-4">📋 Relatórios de Inquéritos Concluídos</h2>
-    
+
     <div class="card p-3 mb-4">
-        <form method="GET" action="{{ url_for('relatorios') }}" class="filter-row">
-            
-            <div class="form-group">
-                <label for="mes">Mês de Referência:</label>
+        <form method="GET" action="{{ url_for('relatorios') }}" class="row g-3">
+
+            <div class="col-md-4">
+                <label for="mes" class="form-label">Mês de Referência:</label>
                 <select name="mes" id="mes" class="form-select">
                     {% for num, nome in meses_do_ano %}
-                        <option value="{{ num }}" {% if num == mes_atual %}selected{% endif %}>
-                            {{ nome }}
-                        </option>
+                        <option value="{{ num }}" {% if num == mes_atual %}selected{% endif %}>{{ nome }}</option>
                     {% endfor %}
                 </select>
             </div>
 
-            <div class="form-group">
-                <label for="ano">Ano de Referência:</label>
+            <div class="col-md-4">
+                <label for="ano" class="form-label">Ano de Referência:</label>
                 <select name="ano" id="ano" class="form-select">
                     {% for ano in anos_disponiveis | reverse %}
-                        <option value="{{ ano }}" {% if ano == ano_atual %}selected{% endif %}>
-                            {{ ano }}
-                        </option>
+                        <option value="{{ ano }}" {% if ano == ano_atual %}selected{% endif %}>{{ ano }}</option>
                     {% endfor %}
                 </select>
             </div>
 
-            <button type="submit" class="btn btn-primary">Filtrar</button>
+            <div class="col-md-4 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Filtrar</button>
+            </div>
         </form>
     </div>
 
     <h3>Resultados para {{ meses_do_ano[mes_atual - 1][1] }} de {{ ano_atual }} ({{ inqueritos|length }} registros)</h3>
 
     {% if inqueritos and inqueritos|length > 0 %}
-
-    <div class="table-responsive">
-      <table class="table table-bordered table-striped align-middle">
-        <thead class="table-dark">
-    <tr>
-        <th>Nº Eletrônico</th>
-        <th>Nº Controle</th>
-        <th>Nº Processo</th>
-        <th>Data Conclusão</th>
-        <th>Data de Relato (Registro)</th>
-        <th style="width: 150px;">Ações</th> </tr>
-</thead>
-<tbody>
-  {% for row in inqueritos %}
-  <tr>
-    <td>{{ row[1] or '' }}</td> <td>{{ row[5] or '' }}</td> <td>{{ row[2] or '' }}</td> <td>{{ row[3].strftime('%d/%m/%Y') if row[3] else '' }}</td> <td>{{ row[6].strftime('%d/%m/%Y %H:%M') if row[6] else '' }}</td> <td>
-        <form action="{{ url_for('rota_desfazer_relato', id=row[0]) }}" method="get"
-              onsubmit="return confirm('Confirma que deseja REMOVER este registro dos relatórios e RESTAURÁ-LO na lista principal?')">
-            <button type="submit" class="btn btn-danger btn-sm w-100">
-                Apagar e Restaurar
-            </button>
-        </form>
-    </td>
-  </tr>
-  {% endfor %}
-</tbody>
-      </table>
+    <div class="table-responsive mt-3">
+        <table class="table table-bordered table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Nº Eletrônico</th>
+                    <th>Nº Controle</th>
+                    <th>Nº Processo</th>
+                    <th>Data Conclusão</th>
+                    <th>Data de Relato (Registro)</th>
+                    <th style="width:150px;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in inqueritos %}
+                <tr>
+                    <td>{{ row[1] or '' }}</td>
+                    <td>{{ row[5] or '' }}</td>
+                    <td>{{ row[2] or '' }}</td>
+                    <td>{{ row[3].strftime('%d/%m/%Y') if row[3] else '' }}</td>
+                    <td>{{ row[6].strftime('%d/%m/%Y %H:%M') if row[6] else '' }}</td>
+                    <td>
+                        <form action="{{ url_for('rota_desfazer_relato', id=row[0]) }}" method="get" onsubmit="return confirm('Confirma que deseja REMOVER este registro dos relatórios e RESTAURÁ-LO na lista principal?')">
+                            <button type="submit" class="btn btn-danger btn-sm w-100">Apagar e Restaurar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 
     {% else %}
-      <div class="alert alert-info">Não há inquéritos relatados neste período.</div>
+    <div class="alert alert-info mt-3">Não há inquéritos relatados neste período.</div>
     {% endif %}
 
     <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">← Voltar para a Lista Principal</a>
@@ -86,6 +82,5 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>
