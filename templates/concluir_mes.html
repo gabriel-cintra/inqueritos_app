@@ -41,18 +41,18 @@
           {% for row in inqueritos %}
           <tr>
             <td>
-                {{ row['num_controle'] or '' }}
-                {% if row['is_cota'] == 1 %}
+                {{ row.num_controle or '' }}
+                {% if row.is_cota %}
                     <span class="badge bg-warning text-dark ms-2">COTA</span>
                 {% endif %}
             </td>
-            <td>{{ row['num_eletronico'] or '' }}</td>
-            <td>{{ row['ano'] or '' }}</td>
-            <td>{{ row['num_processo'] or '' }}</td>
-            <td>{{ row['data_conclusao'].strftime('%d/%m/%Y') if row['data_conclusao'] else '' }}</td>
+            <td>{{ row.num_eletronico or '' }}</td>
+            <td>{{ row.ano or '' }}</td>
+            <td>{{ row.num_processo or '' }}</td>
+            <td>{{ row.data_conclusao.strftime('%d/%m/%Y') if row.data_conclusao else '' }}</td>
 
             <td>
-              <form action="{{ url_for('relatar', id=row['id']) }}" method="post" onsubmit="return confirm('Confirmar relato e remoção do inquérito?')">
+              <form action="{{ url_for('relatar', id=row.id) }}" method="post" onsubmit="return confirm('Confirmar relato e remoção do inquérito?')">
                 <button type="submit" class="btn btn-success btn-sm w-100">Relatado</button>
               </form>
             </td>

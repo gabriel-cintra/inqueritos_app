@@ -10,30 +10,30 @@
 <div class="container mt-5">
     <div class="card shadow-sm">
         <div class="card-header bg-primary text-white">
-            <h4 class="m-0">Editar Inquérito — ID: {{ inquerito['id'] }}</h4>
+            <h4 class="m-0">Editar Inquérito — ID: {{ inquerito.id }}</h4>
         </div>
 
         <div class="card-body">
-            <form action="{{ url_for('editar', id=inquerito['id']) }}" method="POST" class="row g-3">
+            <form action="{{ url_for('editar', id=inquerito.id) }}" method="POST" class="row g-3">
 
                 <div class="col-md-6">
                     <label for="num_controle" class="form-label">Nº Controle</label>
-                    <input type="text" id="num_controle" name="num_controle" value="{{ inquerito['num_controle'] or '' }}" class="form-control" required>
+                    <input type="text" id="num_controle" name="num_controle" value="{{ inquerito.num_controle or '' }}" class="form-control" required>
                 </div>
 
                 <div class="col-md-6">
                     <label for="num_eletronico" class="form-label">Nº Eletrônico</label>
-                    <input type="text" id="num_eletronico" name="num_eletronico" value="{{ inquerito['num_eletronico'] }}" class="form-control" required>
+                    <input type="text" id="num_eletronico" name="num_eletronico" value="{{ inquerito.num_eletronico }}" class="form-control" required>
                 </div>
 
                 <div class="col-md-4">
                     <label for="ano" class="form-label">Ano</label>
-                    <input type="number" id="ano" name="ano" value="{{ inquerito['ano'] }}" class="form-control" required>
+                    <input type="number" id="ano" name="ano" value="{{ inquerito.ano }}" class="form-control" required>
                 </div>
 
                 <div class="col-md-8">
                     <label for="num_processo" class="form-label">Nº Processo</label>
-                    <input type="text" id="num_processo" name="num_processo" value="{{ inquerito['num_processo'] or '' }}" class="form-control">
+                    <input type="text" id="num_processo" name="num_processo" value="{{ inquerito.num_processo or '' }}" class="form-control">
                 </div>
 
                 <div class="col-12">
@@ -44,9 +44,9 @@
                 <div class="col-12">
                     <div class="form-check form-switch p-3 border rounded bg-white">
                         <input class="form-check-input" type="checkbox" id="is_cota" name="is_cota" 
-                               {% if inquerito['is_cota'] == 1 %}checked{% endif %}>
-                        <label class="form-check-label fw-bold " for="is_cota">
-                            COTA
+                               {% if inquerito.is_cota %}checked{% endif %}>
+                        <label class="form-check-label fw-bold text-danger" for="is_cota">
+                            Este processo é COTA (Retorno da Justiça)
                         </label>
                     </div>
                 </div>

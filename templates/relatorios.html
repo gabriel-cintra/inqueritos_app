@@ -53,17 +53,17 @@
                 {% for row in inqueritos %}
                 <tr>
                     <td>
-                        {{ row['num_controle'] or '' }}
-                        {% if row['is_cota'] == 1 %}
+                        {{ row.num_controle or '' }}
+                        {% if row.is_cota %}
                             <span class="badge bg-warning text-dark ms-2">COTA</span>
                         {% endif %}
                     </td>
-                    <td>{{ row['num_eletronico'] or '' }}</td>
-                    <td>{{ row['num_processo'] or '' }}</td>
-                    <td>{{ row['data_conclusao'].strftime('%d/%m/%Y') if row['data_conclusao'] else '' }}</td>
-                    <td>{{ row['data_relato'].strftime('%d/%m/%Y') if row['data_relato'] else '' }}</td>
+                    <td>{{ row.num_eletronico or '' }}</td>
+                    <td>{{ row.num_processo or '' }}</td>
+                    <td>{{ row.data_conclusao.strftime('%d/%m/%Y') if row.data_conclusao else '' }}</td>
+                    <td>{{ row.data_relato.strftime('%d/%m/%Y') if row.data_relato else '' }}</td>
                     <td>
-                        <form action="{{ url_for('rota_desfazer_relato', id=row['id']) }}" method="get" onsubmit="return confirm('Restaurar para a lista principal?')">
+                        <form action="{{ url_for('rota_desfazer_relato', id=row.id) }}" method="get" onsubmit="return confirm('Restaurar para a lista principal?')">
                             <button type="submit" class="btn btn-danger btn-sm w-100">Desfazer</button>
                         </form>
                     </td>
