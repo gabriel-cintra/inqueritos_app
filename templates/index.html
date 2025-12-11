@@ -33,7 +33,7 @@
   <div class="row mb-3">
     <div class="col-md-6">
         <form action="{{ url_for('index') }}" method="GET" class="d-flex">
-            <input class="form-control me-2" type="search" name="q" placeholder="Buscar por Nº Eletrônico, Controle ou Processo..." value="{{ busca_atual }}">
+            <input class="form-control me-2" type="search" name="q" placeholder="Buscar..." value="{{ busca_atual }}">
             <button class="btn btn-outline-success" type="submit">Buscar</button>
             {% if busca_atual %}
                 <a href="{{ url_for('index') }}" class="btn btn-outline-secondary ms-2">Limpar</a>
@@ -70,7 +70,16 @@
 
       <div class="col-md-3">
         <label for="data_conclusao" class="form-label">Data Conclusão</label>
-        <input type="date" id="data_conclusao" name="data_conclusao" class="form-control" placeholder="2025-12-18">
+        <input type="date" id="data_conclusao" name="data_conclusao" class="form-control">
+      </div>
+      
+      <div class="col-md-12 mb-3">
+          <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="is_cota" name="is_cota">
+              <label class="form-check-label fw-bold" for="is_cota">
+                  Cota
+              </label>
+          </div>
       </div>
 
       <div class="col-12">
@@ -78,7 +87,6 @@
       </div>
 
     </form>
-   
   </section>
 
   <hr>
@@ -103,19 +111,25 @@
         <tr>
           <td class="text-center">
             <input type="checkbox"
-              {% if row[10] == 1 %}checked{% endif %}
-              onchange="(function(){ var v = this.checked ? 1 : 0; window.location.href='{{ url_for('rota_marcar_concluir', id=row[0]) }}?v='+v; }).call(this)">
+              {% if row['concluir_mes'] == 1 %}checked{% endif %}
+              onchange="(function(){ var v = this.checked ? 1 : 0; window.location.href='{{ url_for('rota_marcar_concluir', id=row['id']) }}?v='+v; }).call(this)">
           </td>
 
-          <td>{{ row[1] or '' }}</td>
-          <td>{{ row[2] or '' }}</td>
-          <td>{{ row[3] or '' }}</td>
-          <td>{{ row[4] or '' }}</td>
+          <td>
+              {{ row['num_controle'] or '' }}
+              {% if row['is_cota'] == 1 %}
+                  <span class="badge bg-warning text-dark ms-2">COTA</span>
+              {% endif %}
+          </td>
+          
+          <td>{{ row['num_eletronico'] or '' }}</td>
+          <td>{{ row['ano'] or '' }}</td>
+          <td>{{ row['num_processo'] or '' }}</td>
 
           <td>
-            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('editar', id=row[0]) }}">Editar</a>
-            <a class="btn btn-sm btn-outline-danger" href="{{ url_for('deletar', id=row[0]) }}" onclick="return confirm('Confirma exclusão?')">Excluir</a>
-            {% if row[10] == 1 %}
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('editar', id=row['id']) }}">Editar</a>
+            <a class="btn btn-sm btn-outline-danger" href="{{ url_for('deletar', id=row['id']) }}" onclick="return confirm('Confirma exclusão?')">Excluir</a>
+            {% if row['concluir_mes'] == 1 %}
               <a class="btn btn-sm btn-outline-success" href="{{ url_for('concluir_mes') }}">Concluir (lista)</a>
             {% endif %}
           </td>
@@ -125,12 +139,27 @@
     </table>
   </div>
 
+  <nav aria-label="Navegação de página" class="mt-4">
+    <ul class="pagination justify-content-center">
+      <li class="page-item {% if pagina_atual == 1 %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('index', page=pagina_atual-1, q=busca_atual, ordem=ordem_atual, dir=dir_atual) }}">Anterior</a>
+      </li>
+      {% for p in range(1, total_paginas + 1) %}
+        <li class="page-item {% if p == pagina_atual %}active{% endif %}">
+          <a class="page-link" href="{{ url_for('index', page=p, q=busca_atual, ordem=ordem_atual, dir=dir_atual) }}">{{ p }}</a>
+        </li>
+      {% endfor %}
+      <li class="page-item {% if pagina_atual == total_paginas %}disabled{% endif %}">
+        <a class="page-link" href="{{ url_for('index', page=pagina_atual+1, q=busca_atual, ordem=ordem_atual, dir=dir_atual) }}">Próximo</a>
+      </li>
+    </ul>
+  </nav>
+
   <footer class="mt-4 mb-4 text-muted small">
-    Sistema de controle de inquéritos — Gere relatórios pela aba de concluídos.
+    Sistema de controle de inquéritos.
   </footer>
 
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
