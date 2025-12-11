@@ -30,6 +30,20 @@
     {% endif %}
   {% endwith %}
 
+  <div class="row mb-3">
+    <div class="col-md-6">
+        <form action="{{ url_for('index') }}" method="GET" class="d-flex">
+            <input class="form-control me-2" type="search" name="q" placeholder="Buscar por Nº Eletrônico, Controle ou Processo..." value="{{ busca_atual }}">
+            <button class="btn btn-outline-success" type="submit">Buscar</button>
+            {% if busca_atual %}
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary ms-2">Limpar</a>
+            {% endif %}
+        </form>
+    </div>
+  </div>
+  
+  <hr>
+
   <section class="mb-4">
     <h2 class="h5 mb-3">Adicionar novo inquérito</h2>
     <form action="{{ url_for('adicionar') }}" method="post" class="row g-3">
@@ -64,7 +78,7 @@
       </div>
 
     </form>
-    <p class="text-muted small mt-2">Obs.: Utilize o formato <strong>AAAA-MM-DD</strong>.</p>
+   
   </section>
 
   <hr>

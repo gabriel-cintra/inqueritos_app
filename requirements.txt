@@ -3,3 +3,4 @@ gunicorn
 PyMySQL
 flask-login
 python-dotenv
+cryptography

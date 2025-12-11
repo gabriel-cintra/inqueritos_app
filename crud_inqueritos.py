@@ -1,5 +1,7 @@
 import pymysql
 from flask import Flask, render_template, request, redirect, url_for, flash
+import os 
+from dotenv import load_dotenv
 from datetime import datetime
 import traceback 
 import re
@@ -7,25 +9,31 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from io import StringIO
 import csv 
 
+# Carrega as variáveis do arquivo .env
+load_dotenv()
 
 
 # ===============================================
-# 1. CONEXÃO COM MYSQL REMOTO
+# 1. CONEXÃO COM MYSQL REMOTO (Blindada)
 # ===============================================
 
 def conectar():
+    """
+    Conecta ao MySQL usando variáveis de ambiente.
+    Funciona tanto Local (lendo .env) quanto Remoto.
+    """
     try:
         conn = pymysql.connect(
-            host='gabrielcintra.mysql.pythonanywhere-services.com',
-            user='gabrielcintra',
-            password='Gco@010203',
-            database='gabrielcintra$default',
+            host=os.getenv('DB_HOST'),      # Pega do arquivo .env
+            user=os.getenv('DB_USER'),      # Pega do arquivo .env
+            password=os.getenv('DB_PASSWORD'), # Pega do arquivo .env
+            database=os.getenv('DB_NAME'),  # Pega do arquivo .env
             charset='utf8mb4',
             cursorclass=pymysql.cursors.Cursor
         )
         return conn
     except pymysql.Error as e:
-        print(f"ERRO: {e}")
+        print(f"ERRO DE CONEXÃO COM MYSQL: {e}")
         return None
 
 # ===============================================
@@ -33,7 +41,8 @@ def conectar():
 # ===============================================
 
 app = Flask(__name__)
-app.secret_key = 'chave_muito_secreta_para_flash'
+# Pega a chave secreta do .env, ou usa uma padrão se não achar
+app.secret_key = os.getenv('SECRET_KEY', 'chave-padrao-dev')
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -159,27 +168,34 @@ def criar_inquerito_manual(num_controle, num_eletronico, ano, num_processo, data
     finally:
         if conn: conn.close()
 
-def listar_inqueritos(ordenar_por='ano', direcao='DESC'):
+def listar_inqueritos(ordenar_por='ano', direcao='DESC', busca=None): # <--- Adicionado parâmetro busca
     conn = conectar()
     if conn is None:
         return []
 
-    # Proteção contra Injeção de SQL em ORDER BY
+    # Proteção simples de colunas
     colunas_permitidas = ['id', 'num_controle', 'num_eletronico', 'ano', 'data_conclusao']
-    direcoes_permitidas = ['ASC', 'DESC']
-    
-    if ordenar_por not in colunas_permitidas:
-        ordenar_por = 'ano'
-        
-    direcao = direcao.upper()
-    if direcao not in direcoes_permitidas:
-        direcao = 'DESC'
+    if ordenar_por not in colunas_permitidas: ordenar_por = 'ano'
+    if direcao.upper() not in ['ASC', 'DESC']: direcao = 'DESC'
 
     try:
         cursor = conn.cursor()
-        # SQL seguro (variáveis de ordenação são pré-validadas)
-        sql = f"SELECT * FROM inqueritos ORDER BY {ordenar_por} {direcao}"
-        cursor.execute(sql)
+        
+        # Se tiver busca, mudamos o SQL
+        if busca:
+            termo = f"%{busca}%"
+            sql = f"""
+                SELECT * FROM inqueritos 
+                WHERE num_eletronico LIKE %s 
+                   OR num_controle LIKE %s 
+                   OR num_processo LIKE %s
+                ORDER BY {ordenar_por} {direcao}
+            """
+            cursor.execute(sql, (termo, termo, termo)) # Passamos o termo 3 vezes para os 3 campos
+        else:
+            sql = f"SELECT * FROM inqueritos ORDER BY {ordenar_por} {direcao}"
+            cursor.execute(sql)
+            
         return cursor.fetchall()
     finally:
         if conn: conn.close()
@@ -536,12 +552,16 @@ def logout():
 def index():
     ordem = request.args.get('ordem', 'ano')
     direcao = request.args.get('dir', 'DESC')
-    dados = listar_inqueritos(ordem, direcao)
+    busca = request.args.get('q', '') # <--- Captura o termo da URL
+    
+    dados = listar_inqueritos(ordem, direcao, busca)
     total = contar_total_registros()
+    
     return render_template('index.html',
                            inqueritos=dados,
                            ordem_atual=ordem,
                            dir_atual=direcao,
+                           busca_atual=busca, # <--- Passa para o template
                            total=total)
 
 @app.route('/marcar_concluir/<int:id>')
