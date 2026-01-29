@@ -1,9 +1,8 @@
 Flask
-Flask-SQLAlchemy
-flask-login
+gunicorn
 PyMySQL
+flask-login
 python-dotenv
 cryptography
-gunicorn
 pandas
 openpyxl
