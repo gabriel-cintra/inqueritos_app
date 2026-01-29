@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Comparar Vencidos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            .card { border: none !important; shadow: none !important; }
+            .container { max-width: 100% !important; }
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container mt-4">
+
+    <div class="card shadow-sm mb-4 no-print">
+        <div class="card-header bg-primary text-white">
+            <h4 class="m-0">Localizar Inquéritos Vencidos (Lote)</h4>
+        </div>
+        <div class="card-body">
+            <p class="text-muted">
+                Copie a tabela do sistema antigo, cole no Excel e salve como <strong>.xlsx</strong>.
+                O sistema irá ignorar linhas em branco automaticamente.
+            </p>
+            
+            <form method="POST" enctype="multipart/form-data" class="row g-3 align-items-end">
+                <div class="col-md-8">
+                    <label for="arquivo_excel" class="form-label">Arquivo Excel (.xlsx)</label>
+                    <input class="form-control" type="file" id="arquivo_excel" name="arquivo_excel" accept=".xlsx, .xls" required>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-success w-100">Processar Arquivo</button>
+                </div>
+            </form>
+            
+            <div class="mt-2">
+                <a href="{{ url_for('index') }}" class="text-decoration-none">← Voltar para a Home</a>
+            </div>
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} no-print">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% if resultados %}
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="m-0">Relatório de Localização</h5>
+            <button onclick="window.print()" class="btn btn-sm btn-light no-print">🖨️ Imprimir Lista</button>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered mb-0 align-middle">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th class="text-center" style="width: 100px;">Nº Controle</th>
+                            <th>Nº Eletrônico (Vencido)</th>
+                            <th style="width: 80px;">Ano</th>
+                            <th>Nº Processo</th>
+                            <th class="text-center" style="width: 100px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in resultados %}
+                        <tr>
+                            <td class="text-center fw-bold fs-5">{{ row.num_controle or '--' }}</td>
+                            <td>
+                                {{ row.num_eletronico }}
+                                {% if row.is_cota %}
+                                    <span class="badge bg-warning text-dark ms-1">COTA</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ row.ano }}</td>
+                            <td>{{ row.num_processo or '' }}</td>
+                            <td class="text-center">
+                                {% if row.concluir_mes %}
+                                    <span class="badge bg-success">A concluir</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Normal</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer text-muted small">
+            Total listado: {{ resultados|length }} inquéritos.
+        </div>
+    </div>
+    {% endif %}
+
+    {% if nao_encontrados %}
+    <div class="alert alert-warning mt-4 no-print">
+        <strong>Atenção:</strong> Os seguintes números do Excel não foram encontrados no banco de dados:<br>
+        <small>{{ nao_encontrados|join(', ') }}</small>
+    </div>
+    {% endif %}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
