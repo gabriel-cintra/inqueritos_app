@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import math
 import csv
 from io import StringIO
@@ -74,6 +74,26 @@ class Inquerito(db.Model):
     equipe = db.Column(db.String(255))
     concluir_mes = db.Column(db.Boolean, default=False)
     is_cota = db.Column(db.Boolean, default=False)
+    # NOVOS CAMPOS
+    data_cadastro = db.Column(db.DateTime, default=datetime.utcnow)
+    prazo_verificado = db.Column(db.Boolean, default=False)
+    
+    def dias_para_vencimento(self):
+        """Calcula quantos dias faltam para a data de conclusão"""
+        if not self.data_conclusao:
+            return None
+        hoje = datetime.now().date()
+        delta = self.data_conclusao - hoje
+        return delta.days
+    
+    def esta_proximo_vencimento(self):
+        """Verifica se está a 5 dias ou menos do vencimento e não foi verificado"""
+        if self.prazo_verificado:
+            return False
+        dias = self.dias_para_vencimento()
+        if dias is None:
+            return False
+        return 0 <= dias <= 5
 
 class InqueritoConcluido(db.Model):
     __tablename__ = 'inqueritos_concluidos'
@@ -145,7 +165,8 @@ def logout():
 @app.route('/')
 @login_required
 def index():
-    ordem_col = request.args.get('ordem', 'ano')
+    # ALTERAÇÃO: Ordenação padrão por data_cadastro DESC
+    ordem_col = request.args.get('ordem', 'data_cadastro')
     direcao = request.args.get('dir', 'DESC')
     busca = request.args.get('q', '')
     page = request.args.get('page', 1, type=int)
@@ -188,7 +209,9 @@ def adicionar():
             ano=int(request.form['ano']),
             num_processo=request.form['num_processo'],
             data_conclusao=formatar_data(request.form['data_conclusao']),
-            is_cota=(1 if 'is_cota' in request.form else 0)
+            is_cota=(1 if 'is_cota' in request.form else 0),
+            data_cadastro=datetime.utcnow(),  # Define data de cadastro
+            prazo_verificado=False  # Inicializa como não verificado
         )
         
         if Inquerito.query.filter_by(num_eletronico=novo.num_eletronico).first():
@@ -210,27 +233,21 @@ def editar(id):
     item = Inquerito.query.get_or_404(id)
     
     if request.method == 'POST':
-        item.num_controle = request.form['num_controle']
-        novo_eletronico = request.form['num_eletronico']
-        item.ano = int(request.form['ano'])
-        item.num_processo = request.form['num_processo']
-        item.data_conclusao = formatar_data(request.form['data_conclusao'])
-        item.is_cota = (1 if 'is_cota' in request.form else 0)
-
-        if novo_eletronico != item.num_eletronico:
-            if Inquerito.query.filter_by(num_eletronico=novo_eletronico).first():
-                flash("Este Nº Eletrônico já existe em outro registro.", "danger")
-                return render_template('editar.html', inquerito=item, data_conclusao_iso=str(item.data_conclusao) if item.data_conclusao else "")
-            item.num_eletronico = novo_eletronico
-
         try:
+            item.num_controle = request.form['num_controle']
+            item.num_eletronico = request.form['num_eletronico']
+            item.ano = int(request.form['ano'])
+            item.num_processo = request.form['num_processo']
+            item.data_conclusao = formatar_data(request.form['data_conclusao'])
+            item.is_cota = (1 if 'is_cota' in request.form else 0)
+            
             db.session.commit()
-            flash("Atualizado com sucesso!", "success")
+            flash("Atualizado!", "success")
             return redirect(url_for('index'))
         except Exception as e:
             db.session.rollback()
             flash(f"Erro: {e}", "danger")
-
+    
     data_iso = item.data_conclusao.isoformat() if item.data_conclusao else ""
     return render_template('editar.html', inquerito=item, data_conclusao_iso=data_iso)
 
@@ -253,6 +270,16 @@ def rota_marcar_concluir(id):
     item = Inquerito.query.get_or_404(id)
     item.concluir_mes = bool(int(request.args.get('v', 0)))
     db.session.commit()
+    return redirect(url_for('index'))
+
+# NOVA ROTA: Marcar prazo como verificado
+@app.route('/verificar_prazo/<int:id>')
+@login_required
+def verificar_prazo(id):
+    item = Inquerito.query.get_or_404(id)
+    item.prazo_verificado = True
+    db.session.commit()
+    flash("Prazo verificado! Alerta removido.", "success")
     return redirect(url_for('index'))
 
 @app.route('/concluir_mes')
@@ -313,7 +340,9 @@ def rota_desfazer_relato(id):
         num_processo=concluido.num_processo,
         data_conclusao=concluido.data_conclusao,
         is_cota=concluido.is_cota,
-        concluir_mes=False
+        concluir_mes=False,
+        data_cadastro=datetime.utcnow(),
+        prazo_verificado=False
     )
     try:
         db.session.add(restaurado)
@@ -349,7 +378,9 @@ def importar_massa():
                     data_conclusao=formatar_data(row[4]),
                     status=row[5].strip() or 'Em Cartório',
                     equipe=row[6].strip() or None,
-                    is_cota=False
+                    is_cota=False,
+                    data_cadastro=datetime.utcnow(),
+                    prazo_verificado=False
                 )
                 db.session.add(novo)
                 count += 1

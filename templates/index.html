@@ -5,6 +5,18 @@
   <title>Inquéritos — Lista</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .alerta-vencimento {
+      background-color: #ffcccc !important;
+    }
+    .alerta-vencimento td {
+      background-color: #ffcccc !important;
+    }
+    .btn-prazo {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+    }
+  </style>
 </head>
 <body class="bg-light">
 
@@ -102,13 +114,15 @@
           <th><a class="text-white" href="{{ url_for('index', ordem='num_eletronico', dir='ASC' if dir_atual=='DESC' else 'DESC') }}">Nº Eletrônico</a></th>
           <th><a class="text-white" href="{{ url_for('index', ordem='ano', dir='ASC' if dir_atual=='DESC' else 'DESC') }}">Ano</a></th>
           <th>Nº Processo</th>
-          <th>Ações</th>
+          <th><a class="text-white" href="{{ url_for('index', ordem='data_cadastro', dir='ASC' if dir_atual=='DESC' else 'DESC') }}">Data Cadastro</a></th>
+          <th><a class="text-white" href="{{ url_for('index', ordem='data_conclusao', dir='ASC' if dir_atual=='DESC' else 'DESC') }}">Data Conclusão</a></th>
+          <th style="width: 200px;">Ações</th>
         </tr>
       </thead>
 
       <tbody>
         {% for row in inqueritos %}
-        <tr>
+        <tr {% if row.esta_proximo_vencimento() %}class="alerta-vencimento"{% endif %}>
           <td class="text-center">
             <input type="checkbox"
               {% if row.concluir_mes %}checked{% endif %}
@@ -125,13 +139,42 @@
           <td>{{ row.num_eletronico or '' }}</td>
           <td>{{ row.ano or '' }}</td>
           <td>{{ row.num_processo or '' }}</td>
+          
+          <td>
+            {% if row.data_cadastro %}
+              {{ row.data_cadastro.strftime('%d/%m/%Y %H:%M') }}
+            {% else %}
+              --
+            {% endif %}
+          </td>
+          
+          <td>
+            {% if row.data_conclusao %}
+              {{ row.data_conclusao.strftime('%d/%m/%Y') }}
+              {% set dias = row.dias_para_vencimento() %}
+              {% if dias is not none and dias >= 0 and dias <= 5 %}
+                <span class="badge bg-danger ms-1">{{ dias }} dia(s)</span>
+              {% endif %}
+            {% else %}
+              --
+            {% endif %}
+          </td>
 
           <td>
-            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('editar', id=row.id) }}">Editar</a>
-            <a class="btn btn-sm btn-outline-danger" href="{{ url_for('deletar', id=row.id) }}" onclick="return confirm('Confirma exclusão?')">Excluir</a>
-            {% if row.concluir_mes %}
-              <a class="btn btn-sm btn-outline-success" href="{{ url_for('concluir_mes') }}">Concluir (lista)</a>
-            {% endif %}
+            <div class="btn-group-vertical btn-group-sm w-100" role="group">
+              <a class="btn btn-sm btn-outline-primary" href="{{ url_for('editar', id=row.id) }}">Editar</a>
+              <a class="btn btn-sm btn-outline-danger" href="{{ url_for('deletar', id=row.id) }}" onclick="return confirm('Confirma exclusão?')">Excluir</a>
+              
+              {% if row.esta_proximo_vencimento() %}
+                <a class="btn btn-sm btn-warning btn-prazo" href="{{ url_for('verificar_prazo', id=row.id) }}">
+                  ✓ Prazo
+                </a>
+              {% endif %}
+              
+              {% if row.concluir_mes %}
+                <a class="btn btn-sm btn-outline-success" href="{{ url_for('concluir_mes') }}">Concluir (lista)</a>
+              {% endif %}
+            </div>
           </td>
         </tr>
         {% endfor %}
