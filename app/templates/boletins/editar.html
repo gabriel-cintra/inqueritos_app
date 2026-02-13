@@ -3,29 +3,36 @@
 {% block title %}Editar Boletim{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card shadow-sm">
-                <div class="card-header bg-warning">
-                    <h4 class="m-0">
-                        <i class="bi bi-pencil"></i> Editar Boletim #{{ boletim.num_bo }}
-                    </h4>
+        <div class="col-lg-8 col-md-10">
+            <div class="row mb-4 align-items-center">
+                <div class="col-12 d-flex justify-content-between">
+                    <h2 class="h4 mb-0 fw-bold text-dark d-flex align-items-center">
+                        <i class="bi bi-pencil-square text-warning me-2"></i> Editar Boletim #{{ boletim.num_bo }}
+                    </h2>
+                    <a href="{{ url_for('boletins.index') }}" class="btn btn-light border text-dark btn-sm px-3">
+                        <i class="bi bi-arrow-left me-1"></i> Voltar
+                    </a>
                 </div>
-                <div class="card-body">
-                    <form action="{{ url_for('boletins.editar', id=boletim.id) }}" method="POST" class="row g-3">
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form action="{{ url_for('boletins.editar', id=boletim.id) }}" method="POST" class="row g-4">
                         <div class="col-md-6">
-                            <label for="num_bo" class="form-label">Nº do BO *</label>
+                            <label for="num_bo" class="form-label text-muted small fw-bold mb-1">Nº do BO *</label>
                             <input type="text" id="num_bo" name="num_bo" 
                                    value="{{ boletim.num_bo }}" class="form-control" required>
                         </div>
                         <div class="col-md-6">
-                            <label for="ano" class="form-label">Ano *</label>
+                            <label for="ano" class="form-label text-muted small fw-bold mb-1">Ano *</label>
                             <input type="number" id="ano" name="ano" 
                                    value="{{ boletim.ano }}" class="form-control" required>
                         </div>
+                        
                         <div class="col-md-6">
-                            <label for="natureza" class="form-label">Natureza *</label>
+                            <label for="natureza" class="form-label text-muted small fw-bold mb-1">Natureza *</label>
                             <select id="natureza" name="natureza" class="form-select" required>
                                 <option value="">Selecione...</option>
                                 <option value="Furto" {% if boletim.natureza == 'Furto' %}selected{% endif %}>Furto</option>
@@ -38,33 +45,36 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label for="data_conclusao" class="form-label">Data de Conclusão</label>
+                            <label for="data_conclusao" class="form-label text-muted small fw-bold mb-1">Data de Conclusão</label>
                             <input type="date" id="data_conclusao" name="data_conclusao" 
                                    value="{{ data_conclusao_iso }}" class="form-control">
                         </div>
+                        
                         <div class="col-md-6">
-                            <label for="status_atual" class="form-label">Status Atual</label>
+                            <label for="status_atual" class="form-label text-muted small fw-bold mb-1">Status Atual</label>
                             <input type="text" id="status_atual" name="status_atual" 
                                    value="{{ boletim.status_atual or '' }}" class="form-control" 
                                    placeholder="Ex: Aguardando intimado">
                         </div>
                         <div class="col-md-6">
-                            <label for="data_atualizacao" class="form-label">Data de Atualização</label>
+                            <label for="data_atualizacao" class="form-label text-muted small fw-bold mb-1">Data de Atualização</label>
                             <input type="date" id="data_atualizacao" name="data_atualizacao" 
                                    value="{{ data_atualizacao_iso }}" class="form-control">
                         </div>
+                        
                         <div class="col-12">
-                            <label for="despacho" class="form-label">Despacho/Observações</label>
+                            <label for="despacho" class="form-label text-muted small fw-bold mb-1">Despacho/Observações</label>
                             <textarea id="despacho" name="despacho" class="form-control" rows="4">{{ boletim.despacho or '' }}</textarea>
                         </div>
-                        <div class="col-12 mt-4">
-                            <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-warning flex-grow-1">
-                                    <i class="bi bi-save"></i> Salvar Alterações
-                                </button>
-                                <a href="{{ url_for('boletins.index') }}" class="btn btn-secondary">
-                                    <i class="bi bi-x-circle"></i> Cancelar
+                        
+                        <div class="col-12 mt-5 border-top pt-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{{ url_for('boletins.index') }}" class="btn btn-light border text-dark px-4">
+                                    Cancelar
                                 </a>
+                                <button type="submit" class="btn btn-dark px-4 fw-bold">
+                                    <i class="bi bi-save me-1"></i> Salvar Alterações
+                                </button>
                             </div>
                         </div>
                     </form>

@@ -3,54 +3,62 @@
 {% block title %}Editar Inquérito{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="m-0">
-                        <i class="bi bi-pencil"></i> Editar Inquérito #{{ inquerito.num_controle or inquerito.id }}
-                    </h4>
+        <div class="col-lg-8 col-md-10">
+            <div class="row mb-4 align-items-center">
+                <div class="col-12 d-flex justify-content-between">
+                    <h2 class="h4 mb-0 fw-bold text-dark d-flex align-items-center">
+                        <i class="bi bi-pencil-square text-warning me-2"></i> Editar Registro #{{ inquerito.num_controle or inquerito.id }}
+                    </h2>
+                    <a href="{{ url_for('inqueritos.index') }}" class="btn btn-light border text-dark btn-sm px-3">
+                        <i class="bi bi-arrow-left me-1"></i> Voltar
+                    </a>
                 </div>
-                <div class="card-body">
-                    <form action="{{ url_for('inqueritos.editar', id=inquerito.id) }}" method="POST" class="row g-3">
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form action="{{ url_for('inqueritos.editar', id=inquerito.id) }}" method="POST" class="row g-4">
                         <div class="col-md-4">
-                            <label for="num_controle" class="form-label">Nº Controle *</label>
+                            <label for="num_controle" class="form-label text-muted small fw-bold mb-1">Nº Controle *</label>
                             <input type="text" id="num_controle" name="num_controle" 
                                    value="{{ inquerito.num_controle or '' }}" class="form-control" required>
                         </div>
-                        <div class="col-md-4">
-                            <label for="num_eletronico" class="form-label">Nº Eletrônico *</label>
+                        <div class="col-md-5">
+                            <label for="num_eletronico" class="form-label text-muted small fw-bold mb-1">Nº Eletrônico *</label>
                             <input type="text" id="num_eletronico" name="num_eletronico" 
                                    value="{{ inquerito.num_eletronico }}" class="form-control" required>
                         </div>
-                        <div class="col-md-2">
-                            <label for="ano" class="form-label">Ano *</label>
+                        <div class="col-md-3">
+                            <label for="ano" class="form-label text-muted small fw-bold mb-1">Ano *</label>
                             <input type="number" id="ano" name="ano" 
                                    value="{{ inquerito.ano }}" class="form-control" required>
                         </div>
+                        
                         <div class="col-md-6">
-                            <label for="num_processo" class="form-label">Nº Processo</label>
+                            <label for="num_processo" class="form-label text-muted small fw-bold mb-1">Nº Processo</label>
                             <input type="text" id="num_processo" name="num_processo" 
                                    value="{{ inquerito.num_processo or '' }}" class="form-control">
                         </div>
                         <div class="col-md-6">
-                            <label for="delegacia" class="form-label">Delegacia</label>
+                            <label for="delegacia" class="form-label text-muted small fw-bold mb-1">Delegacia</label>
                             <input type="text" id="delegacia" name="delegacia" 
                                    value="{{ inquerito.delegacia or '' }}" class="form-control">
                         </div>
+                        
                         <div class="col-md-4">
-                            <label for="data_conclusao" class="form-label">Data Conclusão</label>
+                            <label for="data_conclusao" class="form-label text-muted small fw-bold mb-1">Data Conclusão</label>
                             <input type="date" id="data_conclusao" name="data_conclusao" 
                                    value="{{ data_conclusao_iso }}" class="form-control">
                         </div>
                         <div class="col-md-4">
-                            <label for="status" class="form-label">Status</label>
+                            <label for="status" class="form-label text-muted small fw-bold mb-1">Status</label>
                             <input type="text" id="status" name="status" 
                                    value="{{ inquerito.status or 'Em Cartório' }}" class="form-control">
                         </div>
                         <div class="col-md-4">
-                            <label for="equipe" class="form-label">Equipe</label>
+                            <label for="equipe" class="form-label text-muted small fw-bold mb-1">Equipe</label>
                             <select id="equipe" name="equipe" class="form-select">
                                 <option value="">Selecione...</option>
                                 <option value="EPJ 1" {% if inquerito.equipe == 'EPJ 1' %}selected{% endif %}>EPJ 1</option>
@@ -58,23 +66,25 @@
                                 <option value="EPJ 3" {% if inquerito.equipe == 'EPJ 3' %}selected{% endif %}>EPJ 3</option>
                             </select>
                         </div>
-                        <div class="col-12">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="is_cota" name="is_cota" 
+                        
+                        <div class="col-12 mt-2">
+                            <div class="form-check bg-light p-3 rounded-3 border">
+                                <input class="form-check-input ms-1 mt-1" type="checkbox" id="is_cota" name="is_cota" 
                                        {% if inquerito.is_cota %}checked{% endif %}>
-                                <label class="form-check-label fw-bold text-danger" for="is_cota">
-                                    <i class="bi bi-exclamation-triangle"></i> É Cota? (Retorno da Justiça)
+                                <label class="form-check-label text-danger fw-bold ms-2" for="is_cota">
+                                    <i class="bi bi-flag-fill me-1"></i> É Cota? (Retorno da Justiça)
                                 </label>
                             </div>
                         </div>
-                        <div class="col-12 mt-4">
-                            <div class="d-flex gap-2">
-                                <button type="submit" class="btn btn-primary flex-grow-1">
-                                    <i class="bi bi-save"></i> Salvar Alterações
-                                </button>
-                                <a href="{{ url_for('inqueritos.index') }}" class="btn btn-secondary">
-                                    <i class="bi bi-x-circle"></i> Cancelar
+                        
+                        <div class="col-12 mt-5 border-top pt-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{{ url_for('inqueritos.index') }}" class="btn btn-light border text-dark px-4">
+                                    Cancelar
                                 </a>
+                                <button type="submit" class="btn btn-dark px-4 fw-bold">
+                                    <i class="bi bi-save me-1"></i> Salvar Alterações
+                                </button>
                             </div>
                         </div>
                     </form>

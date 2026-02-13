@@ -5,133 +5,130 @@
 {% block extra_css %}
 <style>
     .badge-status-aguardando {
-        background-color: #ffc107;
-        color: #000;
-        padding: 0.35em 0.65em;
-        border-radius: 0.375rem;
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+        padding: 0.35em 0.75em;
+        border-radius: 50rem;
+        font-weight: 500;
+        font-size: 0.75rem;
     }
     .badge-status-andamento {
-        background-color: #0dcaf0;
-        color: #000;
-        padding: 0.35em 0.65em;
-        border-radius: 0.375rem;
+        background-color: #e0f3ff;
+        color: #0056b3;
+        border: 1px solid #b8daff;
+        padding: 0.35em 0.75em;
+        border-radius: 50rem;
+        font-weight: 500;
+        font-size: 0.75rem;
     }
     .despacho-row {
-        background-color: #f8f9fa;
-        border-top: 1px dashed #dee2e6;
+        background-color: #fafafa;
     }
     .despacho-row td {
-        padding: 0.75rem 1rem;
-        font-size: 0.9rem;
+        padding: 0.6rem 1rem 1rem 1rem;
+        font-size: 0.85rem;
         color: #6c757d;
+        border-top: none;
+        border-bottom: 1px solid #eaeaea;
+    }
+    .main-row td {
+        border-bottom: none;
     }
     .num-controle {
         font-weight: 600;
-        color: #0d6efd;
+        color: #212529;
     }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <!-- FLASH MESSAGES -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ 'danger' if category=='danger' else ('success' if category=='success' else 'warning') }} alert-dismissible fade show">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-
-    <!-- CABEÇALHO -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2><i class="bi bi-exclamation-triangle text-warning"></i> Boletins de Ocorrência</h2>
-            <p class="text-muted mb-0">Gerenciamento de boletins em andamento</p>
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h2 class="h4 mb-0 fw-bold text-dark d-flex align-items-center">
+                <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i> Boletins de Ocorrência
+            </h2>
+            <p class="text-muted small mb-0 mt-1 ms-4 ps-2">Gerenciamento de boletins em andamento</p>
         </div>
-        <div>
-            <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalNovoBO">
-                <i class="bi bi-plus-circle"></i> Novo Boletim
+        <div class="col-md-4 text-end">
+            <button class="btn btn-dark fw-bold px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNovoBO">
+                <i class="bi bi-plus-circle me-1"></i> Novo Boletim
             </button>
         </div>
     </div>
 
-    <!-- TABS DE NAVEGAÇÃO -->
-    <ul class="nav nav-tabs mb-3">
+    <ul class="nav nav-pills mb-4 bg-white p-2 rounded-3 border shadow-sm d-inline-flex">
         <li class="nav-item">
-            <a class="nav-link active" href="{{ url_for('boletins.index') }}">
-                <i class="bi bi-list-ul"></i> Ativos 
-                <span class="badge bg-primary ms-2">{{ boletins|length if boletins else 0 }}</span>
+            <a class="nav-link active bg-dark text-white px-3 py-2 small fw-bold shadow-sm" href="{{ url_for('boletins.index') }}">
+                <i class="bi bi-list-ul me-1"></i> Ativos 
+                <span class="badge bg-light text-dark ms-1">{{ boletins|length if boletins else 0 }}</span>
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('boletins.concluir') }}">
-                <i class="bi bi-check-square"></i> Aguardando Finalização 
-                <span class="badge bg-warning text-dark ms-2">{{ count_concluir if count_concluir else 0 }}</span>
+            <a class="nav-link text-muted px-3 py-2 small fw-medium" href="{{ url_for('boletins.concluir') }}">
+                <i class="bi bi-check-square me-1"></i> Aguardando Finalização 
+                <span class="badge bg-warning text-dark border ms-1">{{ count_concluir if count_concluir else 0 }}</span>
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('boletins.finalizados') }}">
-                <i class="bi bi-archive"></i> Finalizados
+            <a class="nav-link text-muted px-3 py-2 small fw-medium" href="{{ url_for('boletins.finalizados') }}">
+                <i class="bi bi-archive me-1"></i> Finalizados
             </a>
         </li>
     </ul>
 
-    <!-- FILTROS E BUSCA -->
-    <div class="filter-section">
-        <div class="row g-3">
-            <div class="col-md-6">
-                <div class="input-group">
-                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" class="form-control" placeholder="Buscar por nº BO ou natureza..." 
-                           id="searchInput" onkeyup="filtrarTabela('searchInput', 'tabelaBoletins')">
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-3">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" class="form-control border-start-0 ps-0" placeholder="Buscar por nº BO ou natureza..." 
+                               id="searchInput" onkeyup="filtrarTabela('searchInput', 'tabelaBoletins')">
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <select class="form-select">
-                    <option selected>Todos os anos</option>
-                    <option>2025</option>
-                    <option>2024</option>
-                    <option>2023</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select class="form-select">
-                    <option selected>Todos os status</option>
-                    <option>Aguardando</option>
-                    <option>Em andamento</option>
-                    <option>Concluído</option>
-                </select>
+                <div class="col-md-3">
+                    <select class="form-select">
+                        <option selected>Todos os anos</option>
+                        <option>2025</option>
+                        <option>2024</option>
+                        <option>2023</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select">
+                        <option selected>Todos os status</option>
+                        <option>Aguardando</option>
+                        <option>Em andamento</option>
+                        <option>Concluído</option>
+                    </select>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- INFORMAÇÕES -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <small class="text-muted">Exibindo {{ boletins|length if boletins else 0 }} registros</small>
+            <span class="badge bg-white text-muted border fw-normal px-3 py-2"><i class="bi bi-database me-1"></i> Exibindo {{ boletins|length if boletins else 0 }} registros</span>
         </div>
         <div>
-            <button class="btn btn-sm btn-outline-success bulk-action-btn" 
+            <button class="btn btn-sm btn-outline-dark bulk-action-btn fw-medium px-3" 
                     data-text="Marcar {count} como concluídos" 
                     data-default-text="Marcar selecionados"
                     onclick="processarAcaoMassa('marcar como concluído')" 
                     disabled>
-                <i class="bi bi-check-all"></i> Marcar selecionados
+                <i class="bi bi-check-all me-1"></i> Marcar selecionados
             </button>
         </div>
     </div>
 
-    <!-- TABELA DE BOLETINS -->
-    <div class="card shadow-sm">
+    <div class="card border-0 shadow-sm overflow-hidden mb-5">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="tabelaBoletins">
-                <thead class="table-light">
+            <table class="table align-middle mb-0" id="tabelaBoletins">
+                <thead class="bg-light">
                     <tr>
-                        <th style="width: 50px;">
+                        <th style="width: 50px;" class="ps-4">
                             <input type="checkbox" class="form-check-input" id="checkAll">
                         </th>
                         <th>Nº BO</th>
@@ -139,55 +136,53 @@
                         <th>Natureza</th>
                         <th>Status Atual</th>
                         <th>Data Conclusão</th>
-                        <th class="text-center">Ações</th>
+                        <th class="text-end pe-4">Ações</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="border-top-0">
                     {% if boletins and boletins|length > 0 %}
                         {% for boletim in boletins %}
-                        <tr>
-                            <td>
+                        <tr class="main-row hover-bg-light">
+                            <td class="ps-4 pt-3 pb-1">
                                 <input type="checkbox" class="form-check-input item-checkbox" value="{{ boletim.id }}">
                             </td>
-                            <td>
+                            <td class="pt-3 pb-1">
                                 <span class="num-controle">{{ boletim.num_bo }}</span>
                             </td>
-                            <td>{{ boletim.ano }}</td>
-                            <td>{{ boletim.natureza }}</td>
-                            <td>
-                                <span class="badge {% if 'Aguardando' in boletim.status_atual %}badge-status-aguardando{% else %}badge-status-andamento{% endif %}">
+                            <td class="text-muted pt-3 pb-1">{{ boletim.ano }}</td>
+                            <td class="text-muted small pt-3 pb-1">{{ boletim.natureza }}</td>
+                            <td class="pt-3 pb-1">
+                                <span class="{% if 'Aguardando' in boletim.status_atual %}badge-status-aguardando{% else %}badge-status-andamento{% endif %}">
                                     {{ boletim.status_atual or 'Em andamento' }}
                                 </span>
                             </td>
-                            <td>{{ boletim.data_conclusao.strftime('%d/%m/%Y') if boletim.data_conclusao else '--' }}</td>
-                            <td class="text-center">
-                                <div class="btn-group btn-group-sm">
-                                    <button class="btn btn-outline-primary" onclick="editarBoletim({{ boletim.id }})">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button class="btn btn-outline-success" onclick="marcarConcluir({{ boletim.id }})">
-                                        <i class="bi bi-check-circle"></i>
-                                    </button>
-                                    <button class="btn btn-outline-danger" onclick="deletarBoletim({{ boletim.id }})">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </div>
+                            <td class="text-dark pt-3 pb-1">{{ boletim.data_conclusao.strftime('%d/%m/%Y') if boletim.data_conclusao else '--' }}</td>
+                            <td class="text-end pe-4 pt-3 pb-1 text-nowrap">
+                                <button class="btn btn-link text-warning p-0 action-icon me-2" onclick="editarBoletim({{ boletim.id }})" data-bs-toggle="tooltip" title="Editar Registro">
+                                    <i class="bi bi-pencil-square fs-5"></i>
+                                </button>
+                                <button class="btn btn-link text-success p-0 action-icon me-2" onclick="marcarConcluir({{ boletim.id }})" data-bs-toggle="tooltip" title="Concluir Boletim">
+                                    <i class="bi bi-check-square-fill fs-5"></i>
+                                </button>
+                                <button class="btn btn-link text-danger p-0 action-icon" onclick="deletarBoletim({{ boletim.id }})" data-bs-toggle="tooltip" title="Excluir Registro">
+                                    <i class="bi bi-trash3-fill fs-5"></i>
+                                </button>
                             </td>
                         </tr>
                         <tr class="despacho-row">
-                            <td colspan="7">
-                                <i class="bi bi-chat-left-text"></i> 
-                                <strong>Despacho:</strong> {{ boletim.despacho or 'Nenhum despacho cadastrado' }}
+                            <td colspan="7" class="ps-4">
+                                <i class="bi bi-chat-left-text me-2 opacity-50"></i> 
+                                <span class="fw-medium text-dark opacity-75">Despacho:</span> {{ boletim.despacho or 'Nenhum despacho cadastrado' }}
                             </td>
                         </tr>
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="7" class="text-center py-4">
-                                <i class="bi bi-inbox fs-1 d-block text-muted"></i>
-                                <p class="text-muted mt-2">Nenhum boletim encontrado</p>
-                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalNovoBO">
-                                    <i class="bi bi-plus-circle"></i> Adicionar primeiro boletim
+                            <td colspan="7" class="text-center py-5">
+                                <i class="bi bi-inbox fs-1 d-block text-secondary opacity-25 mb-3"></i>
+                                <p class="text-muted mb-3">Nenhum boletim encontrado</p>
+                                <button class="btn btn-dark btn-sm px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalNovoBO">
+                                    <i class="bi bi-plus-circle me-1"></i> Adicionar primeiro boletim
                                 </button>
                             </td>
                         </tr>
@@ -197,29 +192,28 @@
         </div>
     </div>
 
-    <!-- MODAL NOVO BOLETIM -->
     <div class="modal fade" id="modalNovoBO" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-warning">
-                    <h5 class="modal-title">
-                        <i class="bi bi-plus-circle"></i> Cadastrar Novo Boletim
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-white border-bottom p-4">
+                    <h5 class="modal-title fw-bold text-dark d-flex align-items-center">
+                        <i class="bi bi-plus-circle text-primary me-2"></i> Cadastrar Novo Boletim
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <form action="{{ url_for('boletins.adicionar') }}" method="POST">
-                    <div class="modal-body">
-                        <div class="row g-3">
+                    <div class="modal-body p-4">
+                        <div class="row g-4">
                             <div class="col-md-6">
-                                <label class="form-label">Nº do BO *</label>
-                                <input type="text" class="form-control" name="num_bo" required>
+                                <label class="form-label text-muted small fw-bold mb-1">Nº do BO *</label>
+                                <input type="text" class="form-control" name="num_bo" required placeholder="Ex: 1234/2025">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Ano *</label>
+                                <label class="form-label text-muted small fw-bold mb-1">Ano *</label>
                                 <input type="number" class="form-control" name="ano" value="2025" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Natureza *</label>
+                                <label class="form-label text-muted small fw-bold mb-1">Natureza *</label>
                                 <select class="form-select" name="natureza" required>
                                     <option value="">Selecione...</option>
                                     <option>Furto</option>
@@ -232,25 +226,25 @@
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Data de Conclusão</label>
+                                <label class="form-label text-muted small fw-bold mb-1">Data de Conclusão</label>
                                 <input type="date" class="form-control" name="data_conclusao">
                             </div>
                             <div class="col-12">
-                                <label class="form-label">Status Atual</label>
+                                <label class="form-label text-muted small fw-bold mb-1">Status Atual</label>
                                 <input type="text" class="form-control" name="status_atual" placeholder="Ex: Aguardando intimado">
                             </div>
                             <div class="col-12">
-                                <label class="form-label">Despacho/Observações</label>
+                                <label class="form-label text-muted small fw-bold mb-1">Despacho/Observações</label>
                                 <textarea class="form-control" name="despacho" rows="3" placeholder="Digite as providências..."></textarea>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="bi bi-x-circle"></i> Cancelar
+                    <div class="modal-footer bg-light border-top-0 p-3">
+                        <button type="button" class="btn btn-light border text-dark px-4" data-bs-dismiss="modal">
+                            Cancelar
                         </button>
-                        <button type="submit" class="btn btn-warning">
-                            <i class="bi bi-save"></i> Salvar Boletim
+                        <button type="submit" class="btn btn-dark px-4 fw-bold shadow-sm">
+                            <i class="bi bi-save me-1"></i> Salvar Boletim
                         </button>
                     </div>
                 </form>
@@ -258,7 +252,6 @@
         </div>
     </div>
 
-    <!-- TOAST CONTAINER -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
 </div>
 
@@ -278,5 +271,19 @@ function deletarBoletim(id) {
         window.location.href = "{{ url_for('boletins.deletar', id=0) }}".replace('0', id);
     }
 }
+
+// Pequeno ajuste CSS via JS para hover na tabela dupla
+document.addEventListener("DOMContentLoaded", function() {
+    const mainRows = document.querySelectorAll('.main-row');
+    mainRows.forEach(row => {
+        const nextRow = row.nextElementSibling;
+        if(nextRow && nextRow.classList.contains('despacho-row')) {
+            row.addEventListener('mouseenter', () => nextRow.style.backgroundColor = '#f1f1f1');
+            row.addEventListener('mouseleave', () => nextRow.style.backgroundColor = '#fafafa');
+            nextRow.addEventListener('mouseenter', () => row.style.backgroundColor = '#f1f1f1');
+            nextRow.addEventListener('mouseleave', () => row.style.backgroundColor = 'transparent');
+        }
+    });
+});
 </script>
 {% endblock %}

@@ -3,68 +3,65 @@
 {% block title %}Importação em Massa{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container-fluid">
     <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2><i class="bi bi-upload text-primary"></i> Importação em Massa</h2>
-                <a href="{{ url_for('inqueritos.index') }}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Voltar
-                </a>
+        <div class="col-lg-10">
+            <div class="row mb-4 align-items-center">
+                <div class="col-12 d-flex justify-content-between">
+                    <h2 class="h4 mb-0 fw-bold text-dark d-flex align-items-center">
+                        <i class="bi bi-cloud-upload text-primary me-2"></i> Importação em Massa
+                    </h2>
+                    <a href="{{ url_for('inqueritos.index') }}" class="btn btn-light border text-dark btn-sm px-3">
+                        <i class="bi bi-arrow-left me-1"></i> Voltar
+                    </a>
+                </div>
             </div>
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
-              {% if messages %}
-                {% for category, message in messages %}
-                  <div class="alert alert-{{ 'danger' if category=='danger' else ('success' if category=='success' else 'warning') }} alert-dismissible fade show">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                  </div>
-                {% endfor %}
-              {% endif %}
-            {% endwith %}
-
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="m-0"><i class="bi bi-file-earmark-spreadsheet"></i> Importar dados</h5>
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4 pb-0">
+                    <h3 class="h6 mb-0 fw-bold d-flex align-items-center">
+                        <i class="bi bi-file-earmark-spreadsheet me-2 text-muted"></i> Importar dados via texto
+                    </h3>
                 </div>
-                <div class="card-body">
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i>
-                        <strong>Instruções:</strong> Copie os dados da sua planilha e cole no campo abaixo. 
-                        A primeira linha será ignorada como cabeçalho.
+                <div class="card-body pt-3">
+                    <div class="alert alert-light border text-muted small d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill me-2 fs-5 text-primary opacity-75"></i>
+                        <div>
+                            <strong>Instruções:</strong> Copie os dados da sua planilha e cole no campo abaixo. 
+                            A primeira linha será ignorada como cabeçalho.
+                        </div>
                     </div>
 
-                    <p class="mb-3">
+                    <p class="mb-2 small text-muted">
                         <strong>Ordem esperada das colunas:</strong><br>
-                        <code>Nº Inquérito | Ano | Delegacia | Data Última Atualização | Data Conclusão | Status | Equipe</code>
+                        <code class="text-dark bg-light px-2 py-1 rounded">Nº Inquérito | Ano | Delegacia | Data Última Atualização | Data Conclusão | Status | Equipe</code>
                     </p>
 
-                    <div class="bg-light p-3 rounded mb-3">
-                        <small class="text-muted">Exemplo de formato:</small>
-                        <pre class="mb-0 mt-2"><code>Nº Inquérito	Ano	Delegacia	Data Última Atualização	Data Conclusão	Status	Equipe
+                    <div class="bg-light p-3 rounded mb-4 border">
+                        <small class="text-muted d-block mb-2">Exemplo de formato:</small>
+                        <pre class="mb-0 text-dark" style="font-size: 0.85rem;"><code>Nº Inquérito	Ano	Delegacia	Data Última Atualização	Data Conclusão	Status	Equipe
 2392712-90.2025.010004	2025	DEL.POL.METROPOLITANO	13/11/2025	13/12/2025	Em Cartório	EPJ 2 - CINTRA</code></pre>
                     </div>
 
                     <form method="POST" action="{{ url_for('inqueritos.importar_massa') }}">
-                        <div class="mb-3">
-                            <label for="dados_inqueritos" class="form-label fw-bold">
-                                <i class="bi bi-pencil-square"></i> Dados para Importação
+                        <div class="mb-4">
+                            <label for="dados_inqueritos" class="form-label text-muted small fw-bold mb-2">
+                                Dados para Importação
                             </label>
-                            <textarea name="dados_inqueritos" id="dados_inqueritos" rows="15" 
-                                      class="form-control font-monospace" 
-                                      placeholder="Cole aqui os dados da planilha..."></textarea>
+                            <textarea name="dados_inqueritos" id="dados_inqueritos" rows="12" 
+                                      class="form-control font-monospace text-muted" 
+                                      placeholder="Cole aqui os dados copiados da planilha..."></textarea>
                         </div>
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary btn-lg">
-                                <i class="bi bi-cloud-upload"></i> Processar Importação
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-dark fw-bold px-5">
+                                <i class="bi bi-cloud-arrow-up me-2"></i> Processar Importação
                             </button>
                         </div>
                     </form>
                 </div>
-                <div class="card-footer">
+                <div class="card-footer bg-transparent border-top-0 pb-4 text-end">
                     <small class="text-muted">
-                        <i class="bi bi-exclamation-triangle"></i> 
+                        <i class="bi bi-exclamation-triangle-fill text-warning me-1"></i> 
                         Registros com número eletrônico já existente serão ignorados automaticamente.
                     </small>
                 </div>

@@ -4,204 +4,217 @@
 
 {% block content %}
 <div class="container-fluid">
-    <!-- ALERTA DE PRAZOS -->
     {% set inqueritos_vencendo = inqueritos|selectattr('esta_proximo_vencimento')|list %}
     {% if inqueritos_vencendo|length > 0 %}
-    <div class="alert alert-warning">
-        <i class="bi bi-exclamation-triangle"></i> <strong>Atenção!</strong> 
-        Você tem <strong>{{ inqueritos_vencendo|length }} inquérito(s)</strong> com prazo de conclusão próximo (≤ 5 dias).
+    <div class="alert alert-danger border-0 shadow-sm d-flex align-items-center mb-4">
+        <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+        <div>Você tem <strong>{{ inqueritos_vencendo|length }} inquérito(s)</strong> com prazo de conclusão próximo (≤ 5 dias).</div>
     </div>
     {% endif %}
 
-    <!-- BUSCA -->
-    <div class="row mb-3">
+    <div class="row mb-4 align-items-center">
         <div class="col-md-6">
-            <form action="{{ url_for('inqueritos.index') }}" method="GET" class="d-flex">
-                <input class="form-control me-2" type="search" name="q" placeholder="Buscar por nº controle, eletrônico ou processo..." value="{{ busca_atual }}">
-                <button class="btn btn-outline-success" type="submit"><i class="bi bi-search"></i> Buscar</button>
+            <h2 class="h4 mb-0 fw-bold text-dark">Inquéritos</h2>
+        </div>
+        <div class="col-md-6">
+            <form action="{{ url_for('inqueritos.index') }}" method="GET" class="d-flex justify-content-end">
+                <div class="input-group w-50">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input class="form-control border-start-0 ps-0" type="search" name="q" placeholder="Buscar..." value="{{ busca_atual }}">
+                </div>
+                <button class="btn btn-dark ms-2" type="submit">Buscar</button>
                 {% if busca_atual %}
-                    <a href="{{ url_for('inqueritos.index') }}" class="btn btn-outline-secondary ms-2">Limpar</a>
+                    <a href="{{ url_for('inqueritos.index') }}" class="btn btn-light ms-2 border" data-bs-toggle="tooltip" title="Limpar busca"><i class="bi bi-x-lg"></i></a>
                 {% endif %}
             </form>
         </div>
     </div>
-    
-    <hr>
 
-    <!-- FORMULÁRIO DE ADIÇÃO -->
-    <section class="mb-4">
-        <h2 class="h5 mb-3"><i class="bi bi-plus-circle"></i> Adicionar novo inquérito</h2>
-        <form action="{{ url_for('inqueritos.adicionar') }}" method="post" class="row g-3">
-            <div class="col-md-2">
-                <label for="num_controle" class="form-label">Nº Controle *</label>
-                <input type="text" id="num_controle" name="num_controle" class="form-control" required>
-            </div>
-            <div class="col-md-3">
-                <label for="num_eletronico" class="form-label">Nº Eletrônico *</label>
-                <input type="text" id="num_eletronico" name="num_eletronico" class="form-control" required>
-            </div>
-            <div class="col-md-1">
-                <label for="ano" class="form-label">Ano *</label>
-                <input type="number" id="ano" name="ano" value="2025" class="form-control" required>
-            </div>
-            <div class="col-md-3">
-                <label for="num_processo" class="form-label">Nº Processo</label>
-                <input type="text" id="num_processo" name="num_processo" class="form-control">
-            </div>
-            <div class="col-md-3">
-                <label for="delegacia" class="form-label">Delegacia</label>
-                <input type="text" id="delegacia" name="delegacia" class="form-control">
-            </div>
-            <div class="col-md-3">
-                <label for="data_conclusao" class="form-label">Data Conclusão</label>
-                <input type="date" id="data_conclusao" name="data_conclusao" class="form-control">
-            </div>
-            <div class="col-md-3">
-                <label for="status" class="form-label">Status</label>
-                <input type="text" id="status" name="status" value="Em Cartório" class="form-control">
-            </div>
-            <div class="col-md-3">
-                <label for="equipe" class="form-label">Equipe</label>
-                <select id="equipe" name="equipe" class="form-select">
-                    <option value="">Selecione...</option>
-                    <option value="EPJ 1">EPJ 1</option>
-                    <option value="EPJ 2 - CINTRA" selected>EPJ 2 - CINTRA</option>
-                    <option value="EPJ 3">EPJ 3</option>
-                </select>
-            </div>
-            <div class="col-md-12">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="is_cota" name="is_cota">
-                    <label class="form-check-label fw-bold text-danger" for="is_cota">
-                        <i class="bi bi-exclamation-triangle"></i> É Cota? (Retorno da Justiça)
-                    </label>
+    <div class="card mb-5 border-0 shadow-sm">
+        <div class="card-header bg-transparent border-0 pt-4 pb-0">
+             <h3 class="h6 mb-0 fw-bold d-flex align-items-center"><i class="bi bi-plus-circle me-2 text-primary"></i>Novo Registro</h3>
+        </div>
+        <div class="card-body pt-3">
+            <form action="{{ url_for('inqueritos.adicionar') }}" method="post" class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label for="num_controle" class="form-label text-muted small fw-bold mb-1">Nº Controle *</label>
+                    <input type="text" id="num_controle" name="num_controle" class="form-control form-control-sm" required placeholder="Ex: 123/2025">
                 </div>
-            </div>
-            <div class="col-12">
-                <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Adicionar</button>
-            </div>
-        </form>
-    </section>
-
-    <hr>
-
-    <p><strong>Total de registros:</strong> {{ total }}</p>
-
-    <!-- TABELA DE INQUÉRITOS -->
-    {% if inqueritos and inqueritos|length > 0 %}
-    <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle">
-            <thead class="table-dark">
-                <tr>
-                    <th style="width: 50px;" class="text-center">
-                        <a class="text-white" href="{{ url_for('inqueritos.index', ordem='concluir_mes', dir='ASC' if dir_atual=='DESC' else 'DESC', q=busca_atual) }}">
-                            <i class="bi bi-check-square"></i>
-                        </a>
-                    </th>
-                    <th><a class="text-white" href="{{ url_for('inqueritos.index', ordem='num_controle', dir='ASC' if dir_atual=='DESC' else 'DESC', q=busca_atual) }}">Nº Controle</a></th>
-                    <th><a class="text-white" href="{{ url_for('inqueritos.index', ordem='num_eletronico', dir='ASC' if dir_atual=='DESC' else 'DESC', q=busca_atual) }}">Nº Eletrônico</a></th>
-                    <th><a class="text-white" href="{{ url_for('inqueritos.index', ordem='ano', dir='ASC' if dir_atual=='DESC' else 'DESC', q=busca_atual) }}">Ano</a></th>
-                    <th>Delegacia</th>
-                    <th><a class="text-white" href="{{ url_for('inqueritos.index', ordem='data_conclusao', dir='ASC' if dir_atual=='DESC' else 'DESC', q=busca_atual) }}">Data Conclusão</a></th>
-                    <th>Status</th>
-                    <th>Equipe</th>
-                    <th style="width: 200px;">Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in inqueritos %}
-                <tr {% if row.esta_proximo_vencimento() %}class="table-danger"{% endif %}>
-                    <td class="text-center">
-                        <input type="checkbox" class="form-check-input"
-                               {% if row.concluir_mes %}checked{% endif %}
-                               onchange="window.location.href='{{ url_for('inqueritos.marcar_concluir', id=row.id) }}?v=' + (this.checked ? 1 : 0)">
-                    </td>
-                    <td>
-                        <span class="fw-bold">{{ row.num_controle or '--' }}</span>
-                        {% if row.is_cota %}
-                            <span class="badge bg-warning text-dark ms-2">COTA</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ row.num_eletronico }}</td>
-                    <td>{{ row.ano }}</td>
-                    <td>{{ row.delegacia or '--' }}</td>
-                    <td>
-                        {% if row.data_conclusao %}
-                            {{ row.data_conclusao.strftime('%d/%m/%Y') }}
-                            {% set dias = row.dias_para_vencimento() %}
-                            {% if dias is not none and dias >= 0 and dias <= 5 %}
-                                <span class="badge bg-danger ms-1">{{ dias }} dia(s)</span>
-                            {% endif %}
-                        {% else %}
-                            --
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if row.status %}
-                            <span class="badge bg-info">{{ row.status }}</span>
-                        {% else %}
-                            <span class="badge bg-secondary">--</span>
-                        {% endif %}
-                    </td>
-                    <td>{{ row.equipe or '--' }}</td>
-                    <td>
-                        <div class="btn-group btn-group-sm" role="group">
-                            {% if row.esta_proximo_vencimento() and not row.prazo_verificado %}
-                                <a class="btn btn-success" href="{{ url_for('inqueritos.verificar_prazo', id=row.id) }}" 
-                                   title="Verificar prazo" onclick="return confirm('Confirmar verificação de prazo?')">
-                                    <i class="bi bi-check-circle"></i>
-                                </a>
-                            {% endif %}
-                            <a class="btn btn-outline-primary" href="{{ url_for('inqueritos.editar', id=row.id) }}" title="Editar">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <a class="btn btn-outline-danger" href="{{ url_for('inqueritos.deletar', id=row.id) }}" 
-                               title="Excluir" onclick="return confirm('Confirma exclusão deste inquérito?')">
-                                <i class="bi bi-trash"></i>
-                            </a>
-                            {% if row.concluir_mes %}
-                                <a class="btn btn-outline-success" href="{{ url_for('inqueritos.concluir_mes') }}" title="Ver na lista de conclusão">
-                                    <i class="bi bi-check-square"></i>
-                                </a>
-                            {% endif %}
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                <div class="col-md-2">
+                    <label for="num_eletronico" class="form-label text-muted small fw-bold mb-1">Nº Eletrônico *</label>
+                    <input type="text" id="num_eletronico" name="num_eletronico" class="form-control form-control-sm" required placeholder="Ex: 5000...">
+                </div>
+                <div class="col-md-1">
+                    <label for="ano" class="form-label text-muted small fw-bold mb-1">Ano *</label>
+                    <input type="number" id="ano" name="ano" value="2025" class="form-control form-control-sm" required>
+                </div>
+                <div class="col-md-2">
+                    <label for="num_processo" class="form-label text-muted small fw-bold mb-1">Nº Processo</label>
+                    <input type="text" id="num_processo" name="num_processo" class="form-control form-control-sm">
+                </div>
+                <div class="col-md-2">
+                    <label for="delegacia" class="form-label text-muted small fw-bold mb-1">Delegacia</label>
+                    <input type="text" id="delegacia" name="delegacia" class="form-control form-control-sm">
+                </div>
+                 <div class="col-md-2">
+                    <label for="data_conclusao" class="form-label text-muted small fw-bold mb-1">Data Conclusão</label>
+                    <input type="date" id="data_conclusao" name="data_conclusao" class="form-control form-control-sm">
+                </div>
+                
+                <div class="col-md-2">
+                    <label for="equipe" class="form-label text-muted small fw-bold mb-1">Equipe</label>
+                    <select id="equipe" name="equipe" class="form-select form-select-sm">
+                        <option value="">Selecione...</option>
+                        <option value="EPJ 1">EPJ 1</option>
+                        <option value="EPJ 2 - CINTRA" selected>EPJ 2 - CINTRA</option>
+                        <option value="EPJ 3">EPJ 3</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                     <label for="status" class="form-label text-muted small fw-bold mb-1">Status</label>
+                    <input type="text" id="status" name="status" value="Em Cartório" class="form-control form-control-sm">
+                </div>
+                <div class="col-md-2 d-flex align-items-center mb-1">
+                    <div class="form-check mb-0">
+                        <input class="form-check-input mt-1" type="checkbox" id="is_cota" name="is_cota">
+                        <label class="form-check-label text-danger small fw-bold" for="is_cota">
+                             <i class="bi bi-flag-fill me-1"></i>É Cota?
+                        </label>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-primary btn-sm w-100 fw-bold" type="submit"><i class="bi bi-save me-1"></i> Salvar</button>
+                </div>
+            </form>
+        </div>
     </div>
 
-    <!-- PAGINAÇÃO -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h3 class="h6 mb-0 text-muted"><i class="bi bi-list-ul me-2"></i>Registros cadastrados</h3>
+        <span class="badge bg-white text-muted border fw-normal px-3 py-2"><i class="bi bi-database me-1"></i> Total: {{ total }}</span>
+    </div>
+
+    {% if inqueritos and inqueritos|length > 0 %}
+    <div class="card border-0 shadow-sm overflow-hidden mb-5">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="bg-light">
+                    <tr>
+                        <th style="width: 40px;" class="text-center ps-3">
+                            <a class="text-decoration-none text-muted" href="{{ url_for('inqueritos.index', ordem='concluir_mes', dir='ASC' if dir_atual=='DESC' else 'DESC', q=busca_atual) }}" data-bs-toggle="tooltip" title="Ordenar por seleção">
+                                <i class="bi bi-check2-square"></i>
+                            </a>
+                        </th>
+                        <th class="ps-3"><a class="text-decoration-none text-muted" href="{{ url_for('inqueritos.index', ordem='num_controle', dir='ASC' if dir_atual=='DESC' else 'DESC', q=busca_atual) }}">Controle {% if ordem_atual == 'num_controle' %}<i class="bi bi-caret-{{ 'down' if dir_atual == 'DESC' else 'up' }}-fill small"></i>{% endif %}</a></th>
+                        <th><a class="text-decoration-none text-muted" href="{{ url_for('inqueritos.index', ordem='num_eletronico', dir='ASC' if dir_atual=='DESC' else 'DESC', q=busca_atual) }}">Eletrônico {% if ordem_atual == 'num_eletronico' %}<i class="bi bi-caret-{{ 'down' if dir_atual == 'DESC' else 'up' }}-fill small"></i>{% endif %}</a></th>
+                        <th><a class="text-decoration-none text-muted" href="{{ url_for('inqueritos.index', ordem='ano', dir='ASC' if dir_atual=='DESC' else 'DESC', q=busca_atual) }}">Ano {% if ordem_atual == 'ano' %}<i class="bi bi-caret-{{ 'down' if dir_atual == 'DESC' else 'up' }}-fill small"></i>{% endif %}</a></th>
+                        <th>Delegacia</th>
+                        <th><a class="text-decoration-none text-muted" href="{{ url_for('inqueritos.index', ordem='data_conclusao', dir='ASC' if dir_atual=='DESC' else 'DESC', q=busca_atual) }}">Conclusão {% if ordem_atual == 'data_conclusao' %}<i class="bi bi-caret-{{ 'down' if dir_atual == 'DESC' else 'up' }}-fill small"></i>{% endif %}</a></th>
+                        <th>Status</th>
+                        <th>Equipe</th>
+                        <th class="text-end pe-4">Ações</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    {% for row in inqueritos %}
+                    <tr {% if row.esta_proximo_vencimento() %}class="table-danger"{% endif %}>
+                        <td class="text-center ps-3">
+                            <input type="checkbox" class="form-check-input"
+                                   {% if row.concluir_mes %}checked{% endif %}
+                                   onchange="window.location.href='{{ url_for('inqueritos.marcar_concluir', id=row.id) }}?v=' + (this.checked ? 1 : 0)">
+                        </td>
+                        <td class="ps-3">
+                            <span class="fw-semibold text-dark">{{ row.num_controle or '--' }}</span>
+                            {% if row.is_cota %}
+                                <i class="bi bi-flag-fill text-warning ms-1" data-bs-toggle="tooltip" title="Cota (Retorno)" style="font-size: 0.8rem;"></i>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted">{{ row.num_eletronico }}</td>
+                        <td class="text-muted">{{ row.ano }}</td>
+                        <td class="text-muted small">{{ row.delegacia or '--' }}</td>
+                        <td>
+                            {% if row.data_conclusao %}
+                                <span class="text-dark">{{ row.data_conclusao.strftime('%d/%m/%Y') }}</span>
+                                {% set dias = row.dias_para_vencimento() %}
+                                {% if dias is not none and dias >= 0 and dias <= 5 %}
+                                    <span class="badge bg-danger ms-1 rounded-pill" style="font-size: 0.65rem;">{{ dias }}d rest.</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">--</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if row.status %}
+                                <span class="badge bg-light text-dark border fw-normal rounded-pill px-2">{{ row.status }}</span>
+                            {% else %}
+                                <span class="text-muted">--</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-muted small">{{ row.equipe or '--' }}</td>
+                        <td class="text-end pe-4 text-nowrap">
+                            {% if row.esta_proximo_vencimento() and not row.prazo_verificado %}
+                                <a href="{{ url_for('inqueritos.verificar_prazo', id=row.id) }}" 
+                                   class="text-success text-decoration-none action-icon me-2" 
+                                   data-bs-toggle="tooltip" title="Confirmar Verificação de Prazo"
+                                   onclick="return confirm('Confirmar verificação de prazo?')">
+                                    <i class="bi bi-check-circle-fill"></i>
+                                </a>
+                            {% endif %}
+                            
+                            <a href="{{ url_for('inqueritos.editar', id=row.id) }}" 
+                               class="text-warning text-decoration-none action-icon me-2"
+                               data-bs-toggle="tooltip" title="Editar Registro">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            
+                            <a href="{{ url_for('inqueritos.deletar', id=row.id) }}" 
+                               class="text-danger text-decoration-none action-icon"
+                               data-bs-toggle="tooltip" title="Excluir Registro"
+                               onclick="return confirm('Confirma exclusão deste inquérito?')">
+                                <i class="bi bi-trash3-fill"></i>
+                            </a>
+
+                            {% if row.concluir_mes %}
+                                <a href="{{ url_for('inqueritos.concluir_mes') }}" 
+                                   class="text-success text-decoration-none action-icon ms-3 d-inline-flex align-items-center"
+                                   data-bs-toggle="tooltip" title="Ir para Concluir do Mês">
+                                    <i class="bi bi-check-square-fill me-1"></i> 
+                                    <span class="small fw-semibold">Concluir</span>
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
     {% if total_paginas > 1 %}
-    <nav aria-label="Navegação de página" class="mt-4">
-        <ul class="pagination justify-content-center">
+    <nav class="mt-4 mb-5">
+        <ul class="pagination justify-content-center pagination-sm">
             <li class="page-item {% if pagina_atual == 1 %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('inqueritos.index', page=pagina_atual-1, q=busca_atual, ordem=ordem_atual, dir=dir_atual) }}">
-                    <i class="bi bi-chevron-left"></i> Anterior
-                </a>
+                <a class="page-link border-0 text-muted" href="{{ url_for('inqueritos.index', page=pagina_atual-1, q=busca_atual, ordem=ordem_atual, dir=dir_atual) }}"><i class="bi bi-chevron-left"></i></a>
             </li>
             {% for p in range(1, total_paginas + 1) %}
                 {% if p >= pagina_atual - 2 and p <= pagina_atual + 2 %}
                 <li class="page-item {% if p == pagina_atual %}active{% endif %}">
-                    <a class="page-link" href="{{ url_for('inqueritos.index', page=p, q=busca_atual, ordem=ordem_atual, dir=dir_atual) }}">{{ p }}</a>
+                    <a class="page-link border-0 rounded-circle mx-1 {% if p == pagina_atual %}bg-dark text-white{% else %}text-muted bg-transparent{% endif %}" href="{{ url_for('inqueritos.index', page=p, q=busca_atual, ordem=ordem_atual, dir=dir_atual) }}">{{ p }}</a>
                 </li>
                 {% endif %}
             {% endfor %}
             <li class="page-item {% if pagina_atual == total_paginas %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('inqueritos.index', page=pagina_atual+1, q=busca_atual, ordem=ordem_atual, dir=dir_atual) }}">
-                    Próximo <i class="bi bi-chevron-right"></i>
-                </a>
+                <a class="page-link border-0 text-muted" href="{{ url_for('inqueritos.index', page=pagina_atual+1, q=busca_atual, ordem=ordem_atual, dir=dir_atual) }}"><i class="bi bi-chevron-right"></i></a>
             </li>
         </ul>
     </nav>
     {% endif %}
 
     {% else %}
-    <div class="alert alert-info text-center py-5">
-        <i class="bi bi-inbox fs-1 d-block"></i>
-        <h4 class="mt-3">Nenhum inquérito encontrado</h4>
-        <p class="mb-0">Use o formulário acima para adicionar o primeiro inquérito.</p>
+    <div class="card border-0 shadow-sm p-5 text-center text-muted bg-white rounded-3">
+        <i class="bi bi-inbox fs-1 text-secondary opacity-25 mb-3"></i>
+        <h4 class="h5 mt-2 fw-normal">Nenhum inquérito encontrado</h4>
+        <p class="mb-0 small">Utilize o formulário acima para adicionar ou buscar registros.</p>
     </div>
     {% endif %}
 </div>

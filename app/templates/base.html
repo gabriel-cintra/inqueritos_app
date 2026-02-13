@@ -5,20 +5,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Sistema Jurídico MP{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
     {% block extra_css %}{% endblock %}
+    <style>
+        body { 
+            background-color: #fcfcfc; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #333;
+            padding-top: 76px; /* Compensação para o header fixo */
+        }
+        .card { 
+            border: 1px solid #eaeaea; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02); 
+            background-color: #ffffff;
+        }
+        .card-header {
+            background-color: #ffffff;
+            border-bottom: 1px solid #eaeaea;
+            padding: 1rem 1.25rem;
+        }
+        .table { margin-bottom: 0; }
+        .table th { 
+            font-weight: 600; 
+            color: #555; 
+            border-bottom: 2px solid #eaeaea;
+            background-color: #fcfcfc;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .table td { 
+            vertical-align: middle; 
+            color: #444; 
+            border-bottom: 1px solid #eaeaea;
+        }
+        /* Ajuste para ícones de ação ficarem discretos */
+        .action-icon {
+            font-size: 1.1rem;
+            padding: 4px;
+            transition: opacity 0.2s;
+        }
+        .action-icon:hover {
+            opacity: 0.7;
+        }
+        .btn { 
+            border-radius: 6px; 
+            font-weight: 500; 
+            letter-spacing: 0.3px;
+        }
+        .form-control, .form-select {
+            border-color: #e0e0e0;
+            border-radius: 6px;
+            box-shadow: none !important;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #adb5bd;
+        }
+    </style>
 </head>
 <body>
-    <!-- INCLUDE DO MENU -->
     {% include 'includes/menu.html' %}
 
-    <!-- FLASH MESSAGES -->
-    <div class="container-fluid mt-3">
+    <div class="container-fluid px-4">
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
-              <div class="alert alert-{{ 'danger' if category=='danger' else ('success' if category=='success' else ('warning' if category=='warning' else 'info')) }} alert-dismissible fade show" role="alert">
+              <div class="alert alert-{{ 'danger' if category=='danger' else ('success' if category=='success' else ('warning' if category=='warning' else 'info')) }} alert-dismissible fade show border-0 shadow-sm mt-3" role="alert">
                 {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
               </div>
@@ -27,20 +81,25 @@
         {% endwith %}
     </div>
 
-    
-
-    <!-- CONTEÚDO PRINCIPAL -->
-    <main class="container-fluid py-4">
+    <main class="container-fluid px-4 py-2">
         {% block content %}{% endblock %}
     </main>
 
-    <!-- RODAPÉ -->
-    <footer class="bg-light text-center py-3 mt-5">
-        <small class="text-muted">Sistema Jurídico MP © 2025</small>
+    <footer class="text-center py-4 mt-5 border-top" style="background-color: #ffffff;">
+        <small class="text-muted">Sistema EPJ PCSP © 2025</small>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function(){
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
