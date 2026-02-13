@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Importação em Massa{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="bi bi-upload text-primary"></i> Importação em Massa</h2>
+                <a href="{{ url_for('inqueritos.index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar
+                </a>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ 'danger' if category=='danger' else ('success' if category=='success' else 'warning') }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="m-0"><i class="bi bi-file-earmark-spreadsheet"></i> Importar dados</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Instruções:</strong> Copie os dados da sua planilha e cole no campo abaixo. 
+                        A primeira linha será ignorada como cabeçalho.
+                    </div>
+
+                    <p class="mb-3">
+                        <strong>Ordem esperada das colunas:</strong><br>
+                        <code>Nº Inquérito | Ano | Delegacia | Data Última Atualização | Data Conclusão | Status | Equipe</code>
+                    </p>
+
+                    <div class="bg-light p-3 rounded mb-3">
+                        <small class="text-muted">Exemplo de formato:</small>
+                        <pre class="mb-0 mt-2"><code>Nº Inquérito	Ano	Delegacia	Data Última Atualização	Data Conclusão	Status	Equipe
+2392712-90.2025.010004	2025	DEL.POL.METROPOLITANO	13/11/2025	13/12/2025	Em Cartório	EPJ 2 - CINTRA</code></pre>
+                    </div>
+
+                    <form method="POST" action="{{ url_for('inqueritos.importar_massa') }}">
+                        <div class="mb-3">
+                            <label for="dados_inqueritos" class="form-label fw-bold">
+                                <i class="bi bi-pencil-square"></i> Dados para Importação
+                            </label>
+                            <textarea name="dados_inqueritos" id="dados_inqueritos" rows="15" 
+                                      class="form-control font-monospace" 
+                                      placeholder="Cole aqui os dados da planilha..."></textarea>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-cloud-upload"></i> Processar Importação
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">
+                        <i class="bi bi-exclamation-triangle"></i> 
+                        Registros com número eletrônico já existente serão ignorados automaticamente.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

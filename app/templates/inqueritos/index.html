@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}Inquéritos - Lista{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- ALERTA DE PRAZOS -->
+    {% set inqueritos_vencendo = inqueritos|selectattr('esta_proximo_vencimento')|list %}
+    {% if inqueritos_vencendo|length > 0 %}
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> <strong>Atenção!</strong> 
+        Você tem <strong>{{ inqueritos_vencendo|length }} inquérito(s)</strong> com prazo de conclusão próximo (≤ 5 dias).
+    </div>
+    {% endif %}
+
+    <!-- BUSCA -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <form action="{{ url_for('inqueritos.index') }}" method="GET" class="d-flex">
+                <input class="form-control me-2" type="search" name="q" placeholder="Buscar por nº controle, eletrônico ou processo..." value="{{ busca_atual }}">
+                <button class="btn btn-outline-success" type="submit"><i class="bi bi-search"></i> Buscar</button>
+                {% if busca_atual %}
+                    <a href="{{ url_for('inqueritos.index') }}" class="btn btn-outline-secondary ms-2">Limpar</a>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    
+    <hr>
+
+    <!-- FORMULÁRIO DE ADIÇÃO -->
+    <section class="mb-4">
+        <h2 class="h5 mb-3"><i class="bi bi-plus-circle"></i> Adicionar novo inquérito</h2>
+        <form action="{{ url_for('inqueritos.adicionar') }}" method="post" class="row g-3">
+            <div class="col-md-2">
+                <label for="num_controle" class="form-label">Nº Controle *</label>
+                <input type="text" id="num_controle" name="num_controle" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+                <label for="num_eletronico" class="form-label">Nº Eletrônico *</label>
+                <input type="text" id="num_eletronico" name="num_eletronico" class="form-control" required>
+            </div>
+            <div class="col-md-1">
+                <label for="ano" class="form-label">Ano *</label>
+                <input type="number" id="ano" name="ano" value="2025" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+                <label for="num_processo" class="form-label">Nº Processo</label>
+                <input type="text" id="num_processo" name="num_processo" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label for="delegacia" class="form-label">Delegacia</label>
+                <input type="text" id="delegacia" name="delegacia" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label for="data_conclusao" class="form-label">Data Conclusão</label>
+                <input type="date" id="data_conclusao" name="data_conclusao" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <input type="text" id="status" name="status" value="Em Cartório" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <label for="equipe" class="form-label">Equipe</label>
+                <select id="equipe" name="equipe" class="form-select">
+                    <option value="">Selecione...</option>
+                    <option value="EPJ 1">EPJ 1</option>
+                    <option value="EPJ 2 - CINTRA" selected>EPJ 2 - CINTRA</option>
+                    <option value="EPJ 3">EPJ 3</option>
+                </select>
+            </div>
+            <div class="col-md-12">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="is_cota" name="is_cota">
+                    <label class="form-check-label fw-bold text-danger" for="is_cota">
+                        <i class="bi bi-exclamation-triangle"></i> É Cota? (Retorno da Justiça)
+                    </label>
+                </div>
+            </div>
+            <div class="col-12">
+                <button class="btn btn-primary" type="submit"><i class="bi bi-save"></i> Adicionar</button>
+            </div>
+        </form>
+    </section>
+
+    <hr>
+
+    <p><strong>Total de registros:</strong> {{ total }}</p>
+
+    <!-- TABELA DE INQUÉRITOS -->
+    {% if inqueritos and inqueritos|length > 0 %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th style="width: 50px;" class="text-center">
+                        <a class="text-white" href="{{ url_for('inqueritos.index', ordem='concluir_mes', dir='ASC' if dir_atual=='DESC' else 'DESC', q=busca_atual) }}">
+                            <i class="bi bi-check-square"></i>
+                        </a>
+                    </th>
+                    <th><a class="text-white" href="{{ url_for('inqueritos.index', ordem='num_controle', dir='ASC' if dir_atual=='DESC' else 'DESC', q=busca_atual) }}">Nº Controle</a></th>
+                    <th><a class="text-white" href="{{ url_for('inqueritos.index', ordem='num_eletronico', dir='ASC' if dir_atual=='DESC' else 'DESC', q=busca_atual) }}">Nº Eletrônico</a></th>
+                    <th><a class="text-white" href="{{ url_for('inqueritos.index', ordem='ano', dir='ASC' if dir_atual=='DESC' else 'DESC', q=busca_atual) }}">Ano</a></th>
+                    <th>Delegacia</th>
+                    <th><a class="text-white" href="{{ url_for('inqueritos.index', ordem='data_conclusao', dir='ASC' if dir_atual=='DESC' else 'DESC', q=busca_atual) }}">Data Conclusão</a></th>
+                    <th>Status</th>
+                    <th>Equipe</th>
+                    <th style="width: 200px;">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in inqueritos %}
+                <tr {% if row.esta_proximo_vencimento() %}class="table-danger"{% endif %}>
+                    <td class="text-center">
+                        <input type="checkbox" class="form-check-input"
+                               {% if row.concluir_mes %}checked{% endif %}
+                               onchange="window.location.href='{{ url_for('inqueritos.marcar_concluir', id=row.id) }}?v=' + (this.checked ? 1 : 0)">
+                    </td>
+                    <td>
+                        <span class="fw-bold">{{ row.num_controle or '--' }}</span>
+                        {% if row.is_cota %}
+                            <span class="badge bg-warning text-dark ms-2">COTA</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ row.num_eletronico }}</td>
+                    <td>{{ row.ano }}</td>
+                    <td>{{ row.delegacia or '--' }}</td>
+                    <td>
+                        {% if row.data_conclusao %}
+                            {{ row.data_conclusao.strftime('%d/%m/%Y') }}
+                            {% set dias = row.dias_para_vencimento() %}
+                            {% if dias is not none and dias >= 0 and dias <= 5 %}
+                                <span class="badge bg-danger ms-1">{{ dias }} dia(s)</span>
+                            {% endif %}
+                        {% else %}
+                            --
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if row.status %}
+                            <span class="badge bg-info">{{ row.status }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">--</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ row.equipe or '--' }}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                            {% if row.esta_proximo_vencimento() and not row.prazo_verificado %}
+                                <a class="btn btn-success" href="{{ url_for('inqueritos.verificar_prazo', id=row.id) }}" 
+                                   title="Verificar prazo" onclick="return confirm('Confirmar verificação de prazo?')">
+                                    <i class="bi bi-check-circle"></i>
+                                </a>
+                            {% endif %}
+                            <a class="btn btn-outline-primary" href="{{ url_for('inqueritos.editar', id=row.id) }}" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a class="btn btn-outline-danger" href="{{ url_for('inqueritos.deletar', id=row.id) }}" 
+                               title="Excluir" onclick="return confirm('Confirma exclusão deste inquérito?')">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                            {% if row.concluir_mes %}
+                                <a class="btn btn-outline-success" href="{{ url_for('inqueritos.concluir_mes') }}" title="Ver na lista de conclusão">
+                                    <i class="bi bi-check-square"></i>
+                                </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- PAGINAÇÃO -->
+    {% if total_paginas > 1 %}
+    <nav aria-label="Navegação de página" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if pagina_atual == 1 %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('inqueritos.index', page=pagina_atual-1, q=busca_atual, ordem=ordem_atual, dir=dir_atual) }}">
+                    <i class="bi bi-chevron-left"></i> Anterior
+                </a>
+            </li>
+            {% for p in range(1, total_paginas + 1) %}
+                {% if p >= pagina_atual - 2 and p <= pagina_atual + 2 %}
+                <li class="page-item {% if p == pagina_atual %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('inqueritos.index', page=p, q=busca_atual, ordem=ordem_atual, dir=dir_atual) }}">{{ p }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+            <li class="page-item {% if pagina_atual == total_paginas %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('inqueritos.index', page=pagina_atual+1, q=busca_atual, ordem=ordem_atual, dir=dir_atual) }}">
+                    Próximo <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="alert alert-info text-center py-5">
+        <i class="bi bi-inbox fs-1 d-block"></i>
+        <h4 class="mt-3">Nenhum inquérito encontrado</h4>
+        <p class="mb-0">Use o formulário acima para adicionar o primeiro inquérito.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

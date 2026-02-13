@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Boletim{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning">
+                    <h4 class="m-0">
+                        <i class="bi bi-pencil"></i> Editar Boletim #{{ boletim.num_bo }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('boletins.editar', id=boletim.id) }}" method="POST" class="row g-3">
+                        <div class="col-md-6">
+                            <label for="num_bo" class="form-label">Nº do BO *</label>
+                            <input type="text" id="num_bo" name="num_bo" 
+                                   value="{{ boletim.num_bo }}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="ano" class="form-label">Ano *</label>
+                            <input type="number" id="ano" name="ano" 
+                                   value="{{ boletim.ano }}" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="natureza" class="form-label">Natureza *</label>
+                            <select id="natureza" name="natureza" class="form-select" required>
+                                <option value="">Selecione...</option>
+                                <option value="Furto" {% if boletim.natureza == 'Furto' %}selected{% endif %}>Furto</option>
+                                <option value="Roubo" {% if boletim.natureza == 'Roubo' %}selected{% endif %}>Roubo</option>
+                                <option value="Estelionato" {% if boletim.natureza == 'Estelionato' %}selected{% endif %}>Estelionato</option>
+                                <option value="Lesão Corporal" {% if boletim.natureza == 'Lesão Corporal' %}selected{% endif %}>Lesão Corporal</option>
+                                <option value="Ameaça" {% if boletim.natureza == 'Ameaça' %}selected{% endif %}>Ameaça</option>
+                                <option value="Dano" {% if boletim.natureza == 'Dano' %}selected{% endif %}>Dano</option>
+                                <option value="Outros" {% if boletim.natureza == 'Outros' %}selected{% endif %}>Outros</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="data_conclusao" class="form-label">Data de Conclusão</label>
+                            <input type="date" id="data_conclusao" name="data_conclusao" 
+                                   value="{{ data_conclusao_iso }}" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="status_atual" class="form-label">Status Atual</label>
+                            <input type="text" id="status_atual" name="status_atual" 
+                                   value="{{ boletim.status_atual or '' }}" class="form-control" 
+                                   placeholder="Ex: Aguardando intimado">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="data_atualizacao" class="form-label">Data de Atualização</label>
+                            <input type="date" id="data_atualizacao" name="data_atualizacao" 
+                                   value="{{ data_atualizacao_iso }}" class="form-control">
+                        </div>
+                        <div class="col-12">
+                            <label for="despacho" class="form-label">Despacho/Observações</label>
+                            <textarea id="despacho" name="despacho" class="form-control" rows="4">{{ boletim.despacho or '' }}</textarea>
+                        </div>
+                        <div class="col-12 mt-4">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-warning flex-grow-1">
+                                    <i class="bi bi-save"></i> Salvar Alterações
+                                </button>
+                                <a href="{{ url_for('boletins.index') }}" class="btn btn-secondary">
+                                    <i class="bi bi-x-circle"></i> Cancelar
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

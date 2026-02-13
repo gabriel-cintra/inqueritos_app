@@ -1,1 +1,1 @@
-web: gunicorn crud_inqueritos:app
+web: gunicorn app:app

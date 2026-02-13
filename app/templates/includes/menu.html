@@ -1,0 +1,57 @@
+<!-- templates/includes/menu.html -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('inqueritos.index') }}">
+            <i class="bi bi-bank2"></i> Sistema Jurídico MP
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and 'inqueritos' in request.endpoint %}active{% endif %}" 
+                       href="{{ url_for('inqueritos.index') }}">
+                        <i class="bi bi-file-earmark-text"></i> Inquéritos
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and 'boletins' in request.endpoint %}active{% endif %}" 
+                       href="{{ url_for('boletins.index') }}">
+                        <i class="bi bi-exclamation-triangle"></i> Boletins
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-graph-up"></i> Relatórios
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('inqueritos.relatorios') }}">Inquéritos Concluídos</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('boletins.finalizados') }}">Boletins Finalizados</a></li>
+                    </ul>
+                </li>
+                <!-- Menu adicional para funcionalidades específicas -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-tools"></i> Ferramentas
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('inqueritos.importar_massa') }}">Importar Inquéritos</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('inqueritos.comparar_vencidos') }}">Comparar Vencidos</a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('inqueritos.concluir_mes') }}">Concluir do Mês</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i> {{ current_user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right"></i> Sair</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
